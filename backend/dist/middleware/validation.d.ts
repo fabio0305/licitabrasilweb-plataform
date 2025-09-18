@@ -1,0 +1,39 @@
+import { Request, Response, NextFunction } from 'express';
+import Joi from 'joi';
+interface ValidationOptions {
+    body?: Joi.ObjectSchema;
+    query?: Joi.ObjectSchema;
+    params?: Joi.ObjectSchema;
+    headers?: Joi.ObjectSchema;
+}
+export declare const validate: (schema: ValidationOptions) => (req: Request, res: Response, next: NextFunction) => void;
+export declare const uuidSchema: Joi.StringSchema<string>;
+export declare const emailSchema: Joi.StringSchema<string>;
+export declare const passwordSchema: Joi.StringSchema<string>;
+export declare const cnpjSchema: Joi.StringSchema<string>;
+export declare const cpfSchema: Joi.StringSchema<string>;
+export declare const phoneSchema: Joi.StringSchema<string>;
+export declare const zipCodeSchema: Joi.StringSchema<string>;
+export declare const paginationSchema: Joi.ObjectSchema<any>;
+export declare const dateRangeSchema: Joi.ObjectSchema<any>;
+export declare const userRegistrationSchema: Joi.ObjectSchema<any>;
+export declare const loginSchema: Joi.ObjectSchema<any>;
+export declare const supplierSchema: Joi.ObjectSchema<any>;
+export declare const publicEntitySchema: Joi.ObjectSchema<any>;
+export declare const biddingSchema: Joi.ObjectSchema<any>;
+export declare const proposalSchema: Joi.ObjectSchema<any>;
+export declare const contractSchema: Joi.ObjectSchema<any>;
+export declare const categorySchema: Joi.ObjectSchema<any>;
+export declare const validateUserRegistration: (req: Request, res: Response, next: NextFunction) => void;
+export declare const validateLogin: (req: Request, res: Response, next: NextFunction) => void;
+export declare const validateSupplier: (req: Request, res: Response, next: NextFunction) => void;
+export declare const validatePublicEntity: (req: Request, res: Response, next: NextFunction) => void;
+export declare const validateBidding: (req: Request, res: Response, next: NextFunction) => void;
+export declare const validateProposal: (req: Request, res: Response, next: NextFunction) => void;
+export declare const validateContract: (req: Request, res: Response, next: NextFunction) => void;
+export declare const validateCategory: (req: Request, res: Response, next: NextFunction) => void;
+export declare const validateUuidParam: (req: Request, res: Response, next: NextFunction) => void;
+export declare const validatePagination: (req: Request, res: Response, next: NextFunction) => void;
+export declare const validateDateRange: (req: Request, res: Response, next: NextFunction) => void;
+export {};
+//# sourceMappingURL=validation.d.ts.map

@@ -1,0 +1,394 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  SUPPLIER
+  PUBLIC_ENTITY
+  AUDITOR
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+  SUSPENDED
+}
+
+enum BiddingStatus {
+  DRAFT
+  PUBLISHED
+  OPEN
+  CLOSED
+  CANCELLED
+  AWARDED
+}
+
+enum BiddingType {
+  PREGAO_ELETRONICO
+  CONCORRENCIA
+  TOMADA_PRECOS
+  CONVITE
+  CONCURSO
+  LEILAO
+}
+
+enum ProposalStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum ContractStatus {
+  DRAFT
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+  COMPLETED
+}
+
+enum DocumentType {
+  EDITAL
+  PROPOSAL
+  CONTRACT
+  CERTIFICATE
+  REPORT
+  OTHER
+}
+
+// Tabelas principais
+
+model User {
+  id          String     @id @default(uuid())
+  email       String     @unique
+  password    String
+  role        UserRole
+  status      UserStatus @default(PENDING)
+  firstName   String
+  lastName    String
+  phone       String?
+  avatar      String?
+  lastLoginAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relacionamentos
+  supplier     Supplier?
+  publicEntity PublicEntity?
+  auditLogs    AuditLog[]
+  sessions     UserSession[]
+
+  @@map("users")
+}
+
+model Supplier {
+  id               String      @id @default(uuid())
+  userId           String      @unique
+  companyName      String
+  tradeName        String?
+  cnpj             String      @unique
+  stateRegistration String?
+  municipalRegistration String?
+  address          String
+  city             String
+  state            String
+  zipCode          String
+  website          String?
+  description      String?
+  isActive         Boolean     @default(true)
+  verifiedAt       DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  // Relacionamentos
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  proposals    Proposal[]
+  contracts    Contract[]
+  documents    Document[]
+  categories   SupplierCategory[]
+
+  @@map("suppliers")
+}
+
+model PublicEntity {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  name        String
+  cnpj        String   @unique
+  entityType  String   // Municipal, Estadual, Federal
+  address     String
+  city        String
+  state       String
+  zipCode     String
+  phone       String
+  website     String?
+  isActive    Boolean  @default(true)
+  verifiedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relacionamentos
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  biddings  Bidding[]
+  contracts Contract[]
+  documents Document[]
+
+  @@map("public_entities")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  code        String   @unique
+  parentId    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relacionamentos
+  parent     Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children   Category[] @relation("CategoryHierarchy")
+  biddings   BiddingCategory[]
+  suppliers  SupplierCategory[]
+
+  @@map("categories")
+}
+
+model Bidding {
+  id                String        @id @default(uuid())
+  publicEntityId    String
+  title             String
+  description       String
+  biddingNumber     String        @unique
+  type              BiddingType
+  status            BiddingStatus @default(DRAFT)
+  estimatedValue    Decimal       @db.Decimal(15, 2)
+  openingDate       DateTime
+  closingDate       DateTime
+  deliveryLocation  String
+  deliveryDeadline  DateTime
+  requirements      String
+  evaluationCriteria String
+  isPublic          Boolean       @default(true)
+  publishedAt       DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relacionamentos
+  publicEntity PublicEntity      @relation(fields: [publicEntityId], references: [id])
+  proposals    Proposal[]
+  documents    Document[]
+  categories   BiddingCategory[]
+  contract     Contract?
+
+  @@map("biddings")
+}
+
+model Proposal {
+  id          String         @id @default(uuid())
+  biddingId   String
+  supplierId  String
+  totalValue  Decimal        @db.Decimal(15, 2)
+  description String
+  status      ProposalStatus @default(DRAFT)
+  submittedAt DateTime?
+  validUntil  DateTime
+  notes       String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Relacionamentos
+  bidding   Bidding        @relation(fields: [biddingId], references: [id])
+  supplier  Supplier       @relation(fields: [supplierId], references: [id])
+  items     ProposalItem[]
+  documents Document[]
+  contract  Contract?
+
+  @@unique([biddingId, supplierId])
+  @@map("proposals")
+}
+
+model ProposalItem {
+  id          String  @id @default(uuid())
+  proposalId  String
+  description String
+  quantity    Int
+  unitPrice   Decimal @db.Decimal(10, 2)
+  totalPrice  Decimal @db.Decimal(15, 2)
+  brand       String?
+  model       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relacionamentos
+  proposal Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  @@map("proposal_items")
+}
+
+model Contract {
+  id             String         @id @default(uuid())
+  biddingId      String         @unique
+  proposalId     String         @unique
+  publicEntityId String
+  supplierId     String
+  contractNumber String         @unique
+  title          String
+  description    String
+  totalValue     Decimal        @db.Decimal(15, 2)
+  startDate      DateTime
+  endDate        DateTime
+  status         ContractStatus @default(DRAFT)
+  signedAt       DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  // Relacionamentos
+  bidding      Bidding      @relation(fields: [biddingId], references: [id])
+  proposal     Proposal     @relation(fields: [proposalId], references: [id])
+  publicEntity PublicEntity @relation(fields: [publicEntityId], references: [id])
+  supplier     Supplier     @relation(fields: [supplierId], references: [id])
+  documents    Document[]
+
+  @@map("contracts")
+}
+
+model Document {
+  id           String       @id @default(uuid())
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  path         String
+  type         DocumentType
+  description  String?
+  isPublic     Boolean      @default(false)
+  uploadedBy   String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  // Relacionamentos opcionais
+  biddingId      String?
+  proposalId     String?
+  contractId     String?
+  supplierId     String?
+  publicEntityId String?
+
+  bidding      Bidding?      @relation(fields: [biddingId], references: [id])
+  proposal     Proposal?     @relation(fields: [proposalId], references: [id])
+  contract     Contract?     @relation(fields: [contractId], references: [id])
+  supplier     Supplier?     @relation(fields: [supplierId], references: [id])
+  publicEntity PublicEntity? @relation(fields: [publicEntityId], references: [id])
+
+  @@map("documents")
+}
+
+// Tabelas de relacionamento
+model BiddingCategory {
+  id         String   @id @default(uuid())
+  biddingId  String
+  categoryId String
+  createdAt  DateTime @default(now())
+
+  // Relacionamentos
+  bidding  Bidding  @relation(fields: [biddingId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@unique([biddingId, categoryId])
+  @@map("bidding_categories")
+}
+
+model SupplierCategory {
+  id         String   @id @default(uuid())
+  supplierId String
+  categoryId String
+  createdAt  DateTime @default(now())
+
+  // Relacionamentos
+  supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@unique([supplierId, categoryId])
+  @@map("supplier_categories")
+}
+
+// Tabelas de auditoria e logs
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String
+  resource  String
+  resourceId String?
+  oldValues Json?
+  newValues Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  // Relacionamentos
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model UserSession {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+// Tabelas de configuração
+model SystemConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  type      String   @default("string") // string, number, boolean, json
+  description String?
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_configs")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String?
+  title     String
+  message   String
+  type      String   @default("info") // info, success, warning, error
+  isRead    Boolean  @default(false)
+  data      Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("notifications")
+}
+
+// Índices para performance
+// Os índices são criados automaticamente para chaves primárias, únicas e estrangeiras
+// Índices adicionais podem ser necessários baseados nas consultas mais frequentes

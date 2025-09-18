@@ -1,0 +1,21 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_1 = require("@/middleware/auth");
+const validation_1 = require("@/middleware/validation");
+const errorHandler_1 = require("@/middleware/errorHandler");
+const BiddingController_1 = require("@/controllers/BiddingController");
+const router = (0, express_1.Router)();
+const biddingController = new BiddingController_1.BiddingController();
+router.get('/public', auth_1.optionalAuth, validation_1.validatePagination, (0, errorHandler_1.asyncHandler)(biddingController.listPublic));
+router.get('/public/:id', auth_1.optionalAuth, validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(biddingController.getPublicById));
+router.use(auth_1.authenticate);
+router.get('/', validation_1.validatePagination, (0, errorHandler_1.asyncHandler)(biddingController.list));
+router.get('/:id', validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(biddingController.getById));
+router.post('/', auth_1.requirePublicEntityAccess, validation_1.validateBidding, (0, errorHandler_1.asyncHandler)(biddingController.create));
+router.put('/:id', auth_1.requirePublicEntityAccess, validation_1.validateUuidParam, validation_1.validateBidding, (0, errorHandler_1.asyncHandler)(biddingController.update));
+router.put('/:id/publish', auth_1.requirePublicEntityAccess, validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(biddingController.publish));
+router.put('/:id/cancel', auth_1.requirePublicEntityAccess, validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(biddingController.cancel));
+router.delete('/:id', auth_1.requirePublicEntityAccess, validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(biddingController.delete));
+exports.default = router;
+//# sourceMappingURL=biddings.js.map

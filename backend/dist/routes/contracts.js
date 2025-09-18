@@ -1,0 +1,21 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_1 = require("@/middleware/auth");
+const validation_1 = require("@/middleware/validation");
+const errorHandler_1 = require("@/middleware/errorHandler");
+const ContractController_1 = require("@/controllers/ContractController");
+const router = (0, express_1.Router)();
+const contractController = new ContractController_1.ContractController();
+router.use(auth_1.authenticate);
+router.get('/', validation_1.validatePagination, (0, errorHandler_1.asyncHandler)(contractController.list));
+router.get('/:id', validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(contractController.getById));
+router.post('/', auth_1.requirePublicEntityAccess, validation_1.validateContract, (0, errorHandler_1.asyncHandler)(contractController.create));
+router.put('/:id', auth_1.requirePublicEntityAccess, validation_1.validateUuidParam, validation_1.validateContract, (0, errorHandler_1.asyncHandler)(contractController.update));
+router.put('/:id/activate', auth_1.requirePublicEntityAccess, validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(contractController.activate));
+router.put('/:id/suspend', auth_1.requirePublicEntityAccess, validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(contractController.suspend));
+router.put('/:id/terminate', auth_1.requirePublicEntityAccess, validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(contractController.terminate));
+router.put('/:id/complete', auth_1.requirePublicEntityAccess, validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(contractController.complete));
+router.put('/:id/sign', validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(contractController.sign));
+exports.default = router;
+//# sourceMappingURL=contracts.js.map

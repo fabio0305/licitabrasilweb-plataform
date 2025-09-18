@@ -1,0 +1,265 @@
+{
+  "info": {
+    "name": "LicitaBrasil Web API",
+    "description": "Coleção completa de endpoints da API LicitaBrasil Web",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3001/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3001",
+          "path": ["health"]
+        },
+        "description": "Verifica se o servidor está funcionando"
+      }
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"usuario@exemplo.com\",\n  \"password\": \"senha123\",\n  \"firstName\": \"João\",\n  \"lastName\": \"Silva\",\n  \"role\": \"SUPPLIER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.token) {",
+                  "        pm.collectionVariables.set('authToken', response.data.token);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"usuario@exemplo.com\",\n  \"password\": \"senha123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Biddings",
+      "item": [
+        {
+          "name": "List Public Biddings",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/biddings/public?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["biddings", "public"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Lista licitações públicas sem necessidade de autenticação"
+          }
+        },
+        {
+          "name": "Get Public Bidding by ID",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/biddings/public/{{biddingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["biddings", "public", "{{biddingId}}"]
+            },
+            "description": "Obtém detalhes de uma licitação pública específica"
+          }
+        },
+        {
+          "name": "List All Biddings (Auth Required)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/biddings?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["biddings"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Lista todas as licitações (requer autenticação)"
+          }
+        },
+        {
+          "name": "Create Bidding",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Licitação para Aquisição de Material de Escritório\",\n  \"description\": \"Descrição detalhada da licitação...\",\n  \"type\": \"PREGAO\",\n  \"estimatedValue\": 50000.00,\n  \"openingDate\": \"2024-01-15T10:00:00.000Z\",\n  \"closingDate\": \"2024-01-30T17:00:00.000Z\",\n  \"deliveryLocation\": \"Sede da Prefeitura\",\n  \"deliveryDeadline\": \"30 dias após assinatura do contrato\",\n  \"requirements\": \"Requisitos específicos...\",\n  \"evaluationCriteria\": \"Menor preço\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/biddings",
+              "host": ["{{baseUrl}}"],
+              "path": ["biddings"]
+            },
+            "description": "Cria uma nova licitação (apenas órgãos públicos)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Suppliers",
+      "item": [
+        {
+          "name": "List Suppliers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/suppliers?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["suppliers"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public Entities",
+      "item": [
+        {
+          "name": "List Public Entities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public-entities?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["public-entities"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

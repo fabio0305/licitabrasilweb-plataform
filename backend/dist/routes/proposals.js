@@ -1,0 +1,22 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_1 = require("@/middleware/auth");
+const validation_1 = require("@/middleware/validation");
+const errorHandler_1 = require("@/middleware/errorHandler");
+const ProposalController_1 = require("@/controllers/ProposalController");
+const router = (0, express_1.Router)();
+const proposalController = new ProposalController_1.ProposalController();
+router.use(auth_1.authenticate);
+router.get('/', validation_1.validatePagination, (0, errorHandler_1.asyncHandler)(proposalController.list));
+router.get('/:id', validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(proposalController.getById));
+router.post('/', auth_1.requireSupplierAccess, validation_1.validateProposal, (0, errorHandler_1.asyncHandler)(proposalController.create));
+router.put('/:id', auth_1.requireSupplierAccess, validation_1.validateUuidParam, validation_1.validateProposal, (0, errorHandler_1.asyncHandler)(proposalController.update));
+router.put('/:id/submit', auth_1.requireSupplierAccess, validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(proposalController.submit));
+router.put('/:id/withdraw', auth_1.requireSupplierAccess, validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(proposalController.withdraw));
+router.delete('/:id', auth_1.requireSupplierAccess, validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(proposalController.delete));
+router.put('/:id/evaluate', auth_1.requirePublicEntityAccess, validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(proposalController.evaluate));
+router.put('/:id/accept', auth_1.requirePublicEntityAccess, validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(proposalController.accept));
+router.put('/:id/reject', auth_1.requirePublicEntityAccess, validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(proposalController.reject));
+exports.default = router;
+//# sourceMappingURL=proposals.js.map

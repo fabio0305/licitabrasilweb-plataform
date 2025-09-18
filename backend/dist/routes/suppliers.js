@@ -1,0 +1,21 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_1 = require("@/middleware/auth");
+const validation_1 = require("@/middleware/validation");
+const errorHandler_1 = require("@/middleware/errorHandler");
+const SupplierController_1 = require("@/controllers/SupplierController");
+const router = (0, express_1.Router)();
+const supplierController = new SupplierController_1.SupplierController();
+router.use(auth_1.authenticate);
+router.get('/', validation_1.validatePagination, (0, errorHandler_1.asyncHandler)(supplierController.list));
+router.get('/:id', validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(supplierController.getById));
+router.post('/', auth_1.requireSupplierAccess, validation_1.validateSupplier, (0, errorHandler_1.asyncHandler)(supplierController.create));
+router.put('/:id', auth_1.requireSupplierAccess, validation_1.validateUuidParam, validation_1.validateSupplier, (0, errorHandler_1.asyncHandler)(supplierController.update));
+router.post('/:id/categories', auth_1.requireSupplierAccess, validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(supplierController.addCategory));
+router.delete('/:id/categories/:categoryId', auth_1.requireSupplierAccess, validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(supplierController.removeCategory));
+router.get('/:id/statistics', validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(supplierController.getStatistics));
+router.put('/:id/verify', auth_1.requireAdminAccess, validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(supplierController.verify));
+router.delete('/:id', auth_1.requireAdminAccess, validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(supplierController.delete));
+exports.default = router;
+//# sourceMappingURL=suppliers.js.map

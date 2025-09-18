@@ -1,0 +1,85 @@
+{"level":"info","message":"✅ Conexão com PostgreSQL estabelecida com sucesso","timestamp":"2025-09-17 22:11:21:1121"}
+{"level":"info","message":"✅ Teste de conexão com PostgreSQL bem-sucedido","timestamp":"2025-09-17 22:11:21:1121"}
+{"level":"info","message":"✅ Conexão com PostgreSQL estabelecida","timestamp":"2025-09-17 22:11:21:1121"}
+{"level":"info","message":"🔗 Conectando ao Redis...","timestamp":"2025-09-17 22:11:21:1121"}
+{"level":"info","message":"✅ Redis conectado e pronto para uso","timestamp":"2025-09-17 22:11:21:1121"}
+{"level":"info","message":"✅ Conexão com Redis estabelecida","timestamp":"2025-09-17 22:11:21:1121"}
+{"level":"info","message":"🚀 Servidor rodando na porta 3001","timestamp":"2025-09-17 22:11:21:1121"}
+{"level":"info","message":"📊 Ambiente: development","timestamp":"2025-09-17 22:11:21:1121"}
+{"level":"info","message":"🔗 API disponível em: http://localhost:3001/api/v1","timestamp":"2025-09-17 22:11:21:1121"}
+{"context":"GET /api/v1/health","level":"error","message":"[GET /api/v1/health] Rota não encontrada: GET /api/v1/health","stack":"Error: Rota não encontrada: GET /api/v1/health\n    at notFoundHandler (/home/toor/backend/src/middleware/notFoundHandler.ts:5:17)\n    at Layer.handle [as handle_request] (/home/toor/backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/home/toor/backend/node_modules/express/lib/router/index.js:328:13)\n    at /home/toor/backend/node_modules/express/lib/router/index.js:286:9\n    at Function.process_params (/home/toor/backend/node_modules/express/lib/router/index.js:346:12)\n    at next (/home/toor/backend/node_modules/express/lib/router/index.js:280:10)\n    at urlencodedParser (/home/toor/backend/node_modules/body-parser/lib/types/urlencoded.js:94:7)\n    at Layer.handle [as handle_request] (/home/toor/backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/home/toor/backend/node_modules/express/lib/router/index.js:328:13)\n    at /home/toor/backend/node_modules/express/lib/router/index.js:286:9","timestamp":"2025-09-17 22:11:37:1137"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [17/Sep/2025:22:11:37 +0000] \"GET /api/v1/health HTTP/1.1\" 404 144 \"-\" \"curl/7.81.0\"","timestamp":"2025-09-17 22:11:37:1137"}
+{"context":"GET /api/v1/auth/me","level":"error","message":"[GET /api/v1/auth/me] Token de acesso não fornecido","stack":"Error: Token de acesso não fornecido\n    at authenticate (/home/toor/backend/src/middleware/auth.ts:34:13)\n    at Layer.handle [as handle_request] (/home/toor/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/toor/backend/node_modules/express/lib/router/route.js:149:13)\n    at Route.dispatch (/home/toor/backend/node_modules/express/lib/router/route.js:119:3)\n    at Layer.handle [as handle_request] (/home/toor/backend/node_modules/express/lib/router/layer.js:95:5)\n    at /home/toor/backend/node_modules/express/lib/router/index.js:284:15\n    at Function.process_params (/home/toor/backend/node_modules/express/lib/router/index.js:346:12)\n    at next (/home/toor/backend/node_modules/express/lib/router/index.js:280:10)\n    at Function.handle (/home/toor/backend/node_modules/express/lib/router/index.js:175:3)\n    at router (/home/toor/backend/node_modules/express/lib/router/index.js:47:12)","timestamp":"2025-09-17 22:12:56:1256"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [17/Sep/2025:22:12:56 +0000] \"GET /api/v1/auth/me HTTP/1.1\" 401 139 \"-\" \"curl/7.81.0\"","timestamp":"2025-09-17 22:12:56:1256"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [17/Sep/2025:22:14:02 +0000] \"GET /health HTTP/1.1\" 200 105 \"-\" \"curl/7.81.0\"","timestamp":"2025-09-17 22:14:02:142"}
+{"context":"POST /api/v1/auth/register","level":"error","message":"[POST /api/v1/auth/register] Dados inválidos","stack":"Error: Dados inválidos\n    at /home/toor/backend/src/middleware/validation.ts:51:19\n    at Layer.handle [as handle_request] (/home/toor/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/toor/backend/node_modules/express/lib/router/route.js:149:13)\n    at Route.dispatch (/home/toor/backend/node_modules/express/lib/router/route.js:119:3)\n    at Layer.handle [as handle_request] (/home/toor/backend/node_modules/express/lib/router/layer.js:95:5)\n    at /home/toor/backend/node_modules/express/lib/router/index.js:284:15\n    at Function.process_params (/home/toor/backend/node_modules/express/lib/router/index.js:346:12)\n    at next (/home/toor/backend/node_modules/express/lib/router/index.js:280:10)\n    at Function.handle (/home/toor/backend/node_modules/express/lib/router/index.js:175:3)\n    at router (/home/toor/backend/node_modules/express/lib/router/index.js:47:12)","timestamp":"2025-09-17 22:14:13:1413"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [17/Sep/2025:22:14:13 +0000] \"POST /api/v1/auth/register HTTP/1.1\" 400 358 \"-\" \"curl/7.81.0\"","timestamp":"2025-09-17 22:14:13:1413"}
+{"event":"Usuário registrado","ip":"::ffff:127.0.0.1","level":"info","message":"Auth Event: Usuário registrado","timestamp":"2025-09-17 22:14:20:1420","userId":"a6215238-a54d-4537-bcfe-73d34cc6a6ce"}
+{"action":"USER_REGISTERED","level":"info","message":"User Activity - ID: a6215238-a54d-4537-bcfe-73d34cc6a6ce, Action: USER_REGISTERED","timestamp":"2025-09-17 22:14:20:1420","userId":"a6215238-a54d-4537-bcfe-73d34cc6a6ce"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [17/Sep/2025:22:14:20 +0000] \"POST /api/v1/auth/register HTTP/1.1\" 201 286 \"-\" \"curl/7.81.0\"","timestamp":"2025-09-17 22:14:20:1420"}
+{"context":"GET /","level":"error","message":"[GET /] Rota não encontrada: GET /","stack":"Error: Rota não encontrada: GET /\n    at notFoundHandler (/home/toor/backend/src/middleware/notFoundHandler.ts:5:17)\n    at Layer.handle [as handle_request] (/home/toor/backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/home/toor/backend/node_modules/express/lib/router/index.js:328:13)\n    at /home/toor/backend/node_modules/express/lib/router/index.js:286:9\n    at Function.process_params (/home/toor/backend/node_modules/express/lib/router/index.js:346:12)\n    at next (/home/toor/backend/node_modules/express/lib/router/index.js:280:10)\n    at urlencodedParser (/home/toor/backend/node_modules/body-parser/lib/types/urlencoded.js:94:7)\n    at Layer.handle [as handle_request] (/home/toor/backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/home/toor/backend/node_modules/express/lib/router/index.js:328:13)\n    at /home/toor/backend/node_modules/express/lib/router/index.js:286:9","timestamp":"2025-09-17 22:16:16:1616"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [17/Sep/2025:22:16:16 +0000] \"GET / HTTP/1.1\" 404 131 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0\"","timestamp":"2025-09-17 22:16:16:1616"}
+{"context":"GET /favicon.ico","level":"error","message":"[GET /favicon.ico] Rota não encontrada: GET /favicon.ico","stack":"Error: Rota não encontrada: GET /favicon.ico\n    at notFoundHandler (/home/toor/backend/src/middleware/notFoundHandler.ts:5:17)\n    at Layer.handle [as handle_request] (/home/toor/backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/home/toor/backend/node_modules/express/lib/router/index.js:328:13)\n    at /home/toor/backend/node_modules/express/lib/router/index.js:286:9\n    at Function.process_params (/home/toor/backend/node_modules/express/lib/router/index.js:346:12)\n    at next (/home/toor/backend/node_modules/express/lib/router/index.js:280:10)\n    at urlencodedParser (/home/toor/backend/node_modules/body-parser/lib/types/urlencoded.js:94:7)\n    at Layer.handle [as handle_request] (/home/toor/backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/home/toor/backend/node_modules/express/lib/router/index.js:328:13)\n    at /home/toor/backend/node_modules/express/lib/router/index.js:286:9","timestamp":"2025-09-17 22:16:16:1616"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [17/Sep/2025:22:16:16 +0000] \"GET /favicon.ico HTTP/1.1\" 404 142 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0\"","timestamp":"2025-09-17 22:16:16:1616"}
+{"level":"info","message":"✅ Conexão com PostgreSQL estabelecida com sucesso","timestamp":"2025-09-17 22:17:02:172"}
+{"level":"info","message":"✅ Conexão com PostgreSQL estabelecida com sucesso","timestamp":"2025-09-17 22:20:42:2042"}
+{"level":"info","message":"✅ Conexão com PostgreSQL estabelecida com sucesso","timestamp":"2025-09-17 23:41:23:4123"}
+{"level":"info","message":"✅ Teste de conexão com PostgreSQL bem-sucedido","timestamp":"2025-09-17 23:41:23:4123"}
+{"level":"info","message":"✅ Conexão com PostgreSQL estabelecida","timestamp":"2025-09-17 23:41:23:4123"}
+{"level":"info","message":"🔗 Conectando ao Redis...","timestamp":"2025-09-17 23:41:23:4123"}
+{"level":"info","message":"✅ Redis conectado e pronto para uso","timestamp":"2025-09-17 23:41:23:4123"}
+{"level":"info","message":"✅ Conexão com Redis estabelecida","timestamp":"2025-09-17 23:41:23:4123"}
+{"level":"info","message":"🚀 Servidor rodando na porta 3001","timestamp":"2025-09-17 23:41:23:4123"}
+{"level":"info","message":"📊 Ambiente: development","timestamp":"2025-09-17 23:41:23:4123"}
+{"level":"info","message":"🔗 API disponível em: http://localhost:3001/api/v1","timestamp":"2025-09-17 23:41:23:4123"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [17/Sep/2025:23:41:44 +0000] \"GET /health HTTP/1.1\" 200 104 \"-\" \"curl/7.81.0\"","timestamp":"2025-09-17 23:41:44:4144"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [17/Sep/2025:23:42:01 +0000] \"GET /api/v1/biddings/public HTTP/1.1\" 200 131 \"-\" \"curl/7.81.0\"","timestamp":"2025-09-17 23:42:01:421"}
+{"level":"info","message":"✅ Conexão com PostgreSQL estabelecida com sucesso","timestamp":"2025-09-17 23:44:57:4457"}
+{"level":"info","message":"✅ Teste de conexão com PostgreSQL bem-sucedido","timestamp":"2025-09-17 23:44:57:4457"}
+{"level":"info","message":"✅ Conexão com PostgreSQL estabelecida","timestamp":"2025-09-17 23:44:57:4457"}
+{"level":"info","message":"🔗 Conectando ao Redis...","timestamp":"2025-09-17 23:44:57:4457"}
+{"level":"info","message":"✅ Redis conectado e pronto para uso","timestamp":"2025-09-17 23:44:57:4457"}
+{"level":"info","message":"✅ Conexão com Redis estabelecida","timestamp":"2025-09-17 23:44:57:4457"}
+{"level":"info","message":"🚀 Servidor rodando na porta 3001","timestamp":"2025-09-17 23:44:57:4457"}
+{"level":"info","message":"📊 Ambiente: development","timestamp":"2025-09-17 23:44:57:4457"}
+{"level":"info","message":"🔗 API disponível em: http://localhost:3001/api/v1","timestamp":"2025-09-17 23:44:57:4457"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [17/Sep/2025:23:45:15 +0000] \"GET /api-docs HTTP/1.1\" 301 158 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0\"","timestamp":"2025-09-17 23:45:15:4515"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [17/Sep/2025:23:45:15 +0000] \"GET /api-docs/ HTTP/1.1\" 200 - \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0\"","timestamp":"2025-09-17 23:45:15:4515"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [17/Sep/2025:23:45:15 +0000] \"GET /api-docs/swagger-ui-init.js HTTP/1.1\" 200 - \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0\"","timestamp":"2025-09-17 23:45:15:4515"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [17/Sep/2025:23:45:15 +0000] \"GET /api-docs/swagger-ui.css HTTP/1.1\" 200 - \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0\"","timestamp":"2025-09-17 23:45:15:4515"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [17/Sep/2025:23:45:15 +0000] \"GET /api-docs/swagger-ui-standalone-preset.js HTTP/1.1\" 200 - \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0\"","timestamp":"2025-09-17 23:45:15:4515"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [17/Sep/2025:23:45:15 +0000] \"GET /api-docs/swagger-ui-bundle.js HTTP/1.1\" 200 - \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0\"","timestamp":"2025-09-17 23:45:15:4515"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [17/Sep/2025:23:45:15 +0000] \"GET /api-docs/favicon-16x16.png HTTP/1.1\" 200 665 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0\"","timestamp":"2025-09-17 23:45:15:4515"}
+{"level":"info","message":"✅ Conexão com PostgreSQL estabelecida com sucesso","timestamp":"2025-09-17 23:49:10:4910"}
+{"level":"info","message":"✅ Teste de conexão com PostgreSQL bem-sucedido","timestamp":"2025-09-17 23:49:10:4910"}
+{"level":"info","message":"✅ Conexão com PostgreSQL estabelecida","timestamp":"2025-09-17 23:49:10:4910"}
+{"level":"info","message":"🔗 Conectando ao Redis...","timestamp":"2025-09-17 23:49:10:4910"}
+{"level":"info","message":"✅ Redis conectado e pronto para uso","timestamp":"2025-09-17 23:49:10:4910"}
+{"level":"info","message":"✅ Conexão com Redis estabelecida","timestamp":"2025-09-17 23:49:10:4910"}
+{"level":"info","message":"🚀 Servidor rodando na porta 3001","timestamp":"2025-09-17 23:49:10:4910"}
+{"level":"info","message":"📊 Ambiente: development","timestamp":"2025-09-17 23:49:10:4910"}
+{"level":"info","message":"🔗 API disponível em: http://localhost:3001/api/v1","timestamp":"2025-09-17 23:49:10:4910"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"GET /health - 200 - 2ms","method":"GET","responseTime":2,"statusCode":200,"timestamp":"2025-09-17 23:49:31:4931","url":"/health","userAgent":"curl/7.81.0"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [17/Sep/2025:23:49:31 +0000] \"GET /health HTTP/1.1\" 200 104 \"-\" \"curl/7.81.0\"","timestamp":"2025-09-17 23:49:31:4931"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"GET /api/v1/biddings/public - 200 - 30ms","method":"GET","responseTime":30,"statusCode":200,"timestamp":"2025-09-17 23:49:38:4938","url":"/api/v1/biddings/public","userAgent":"curl/7.81.0"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [17/Sep/2025:23:49:38 +0000] \"GET /api/v1/biddings/public HTTP/1.1\" 200 131 \"-\" \"curl/7.81.0\"","timestamp":"2025-09-17 23:49:38:4938"}
+{"level":"info","message":"✅ Conexão com PostgreSQL estabelecida com sucesso","timestamp":"2025-09-18 00:55:50:5550"}
+{"level":"info","message":"✅ Teste de conexão com PostgreSQL bem-sucedido","timestamp":"2025-09-18 00:55:50:5550"}
+{"level":"info","message":"✅ Conexão com PostgreSQL estabelecida","timestamp":"2025-09-18 00:55:50:5550"}
+{"level":"info","message":"🔗 Conectando ao Redis...","timestamp":"2025-09-18 00:55:50:5550"}
+{"level":"info","message":"✅ Redis conectado e pronto para uso","timestamp":"2025-09-18 00:55:50:5550"}
+{"level":"info","message":"✅ Conexão com PostgreSQL estabelecida com sucesso","timestamp":"2025-09-18 00:56:22:5622"}
+{"level":"info","message":"✅ Teste de conexão com PostgreSQL bem-sucedido","timestamp":"2025-09-18 00:56:22:5622"}
+{"level":"info","message":"✅ Conexão com PostgreSQL estabelecida","timestamp":"2025-09-18 00:56:22:5622"}
+{"level":"info","message":"🔗 Conectando ao Redis...","timestamp":"2025-09-18 00:56:22:5622"}
+{"level":"info","message":"✅ Redis conectado e pronto para uso","timestamp":"2025-09-18 00:56:22:5622"}
+{"level":"info","message":"✅ Conexão com Redis estabelecida","timestamp":"2025-09-18 00:56:22:5622"}
+{"level":"info","message":"🔌 WebSocket inicializado","timestamp":"2025-09-18 00:56:22:5622"}
+{"level":"info","message":"🔔 Serviço de notificações configurado","timestamp":"2025-09-18 00:56:22:5622"}
+{"level":"info","message":"🕐 Iniciando tarefas agendadas","timestamp":"2025-09-18 00:56:22:5622"}
+{"level":"info","message":"✅ Tarefas agendadas iniciadas com sucesso","timestamp":"2025-09-18 00:56:22:5622"}
+{"level":"info","message":"⏰ Tarefas agendadas iniciadas","timestamp":"2025-09-18 00:56:22:5622"}
+{"level":"info","message":"🚀 Servidor rodando na porta 3001","timestamp":"2025-09-18 00:56:22:5622"}
+{"level":"info","message":"📊 Ambiente: development","timestamp":"2025-09-18 00:56:22:5622"}
+{"level":"info","message":"🔗 API disponível em: http://localhost:3001/api/v1","timestamp":"2025-09-18 00:56:22:5622"}
+{"level":"info","message":"🔌 WebSocket disponível em: ws://localhost:3001","timestamp":"2025-09-18 00:56:22:5622"}

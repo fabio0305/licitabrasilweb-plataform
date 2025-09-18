@@ -1,0 +1,20 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const AuthController_1 = require("@/controllers/AuthController");
+const validation_1 = require("@/middleware/validation");
+const auth_1 = require("@/middleware/auth");
+const errorHandler_1 = require("@/middleware/errorHandler");
+const router = (0, express_1.Router)();
+const authController = new AuthController_1.AuthController();
+router.post('/register', validation_1.validateUserRegistration, (0, errorHandler_1.asyncHandler)(authController.register));
+router.post('/login', validation_1.validateLogin, (0, errorHandler_1.asyncHandler)(authController.login));
+router.post('/refresh-token', (0, errorHandler_1.asyncHandler)(authController.refreshToken));
+router.post('/forgot-password', (0, errorHandler_1.asyncHandler)(authController.forgotPassword));
+router.post('/reset-password', (0, errorHandler_1.asyncHandler)(authController.resetPassword));
+router.post('/logout', auth_1.authenticate, (0, errorHandler_1.asyncHandler)(authController.logout));
+router.get('/me', auth_1.authenticate, (0, errorHandler_1.asyncHandler)(authController.getProfile));
+router.put('/me', auth_1.authenticate, (0, errorHandler_1.asyncHandler)(authController.updateProfile));
+router.put('/change-password', auth_1.authenticate, (0, errorHandler_1.asyncHandler)(authController.changePassword));
+exports.default = router;
+//# sourceMappingURL=auth.js.map

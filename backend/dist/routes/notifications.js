@@ -1,0 +1,21 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_1 = require("@/middleware/auth");
+const validation_1 = require("@/middleware/validation");
+const errorHandler_1 = require("@/middleware/errorHandler");
+const NotificationController_1 = require("@/controllers/NotificationController");
+const router = (0, express_1.Router)();
+const notificationController = new NotificationController_1.NotificationController();
+router.use(auth_1.authenticate);
+router.get('/', validation_1.validatePagination, (0, errorHandler_1.asyncHandler)(notificationController.list));
+router.get('/:id', validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(notificationController.getById));
+router.put('/:id/read', validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(notificationController.markAsRead));
+router.put('/read-all', (0, errorHandler_1.asyncHandler)(notificationController.markAllAsRead));
+router.delete('/:id', validation_1.validateUuidParam, (0, errorHandler_1.asyncHandler)(notificationController.delete));
+router.delete('/read-all', (0, errorHandler_1.asyncHandler)(notificationController.deleteAllRead));
+router.post('/', auth_1.requireAdminAccess, (0, errorHandler_1.asyncHandler)(notificationController.create));
+router.post('/bulk', auth_1.requireAdminAccess, (0, errorHandler_1.asyncHandler)(notificationController.sendBulk));
+router.get('/admin/statistics', auth_1.requireAdminAccess, (0, errorHandler_1.asyncHandler)(notificationController.getStatistics));
+exports.default = router;
+//# sourceMappingURL=notifications.js.map
