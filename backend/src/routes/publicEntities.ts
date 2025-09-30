@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { authenticate, requirePublicEntityAccess, requireAdminAccess } from '@/middleware/auth';
-import { validatePublicEntity, validatePagination, validateUuidParam } from '@/middleware/validation';
-import { asyncHandler } from '@/middleware/errorHandler';
-import { PublicEntityController } from '@/controllers/PublicEntityController';
+import { authenticate, requirePublicEntityAccess, requireAdminAccess } from '../middleware/auth';
+import { validatePublicEntity, validatePagination, validateUuidParam } from '../middleware/validation';
+import { asyncHandler } from '../middleware/errorHandler';
+import { PublicEntityController } from '../controllers/PublicEntityController';
 
 const router = Router();
 const publicEntityController = new PublicEntityController();

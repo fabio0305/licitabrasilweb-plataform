@@ -6,10 +6,10 @@
  */
 
 import { Router } from 'express';
-import { authenticate, requirePublicEntityAccess, optionalAuth } from '@/middleware/auth';
-import { validateBidding, validatePagination, validateUuidParam } from '@/middleware/validation';
-import { asyncHandler } from '@/middleware/errorHandler';
-import { BiddingController } from '@/controllers/BiddingController';
+import { authenticate, requirePublicEntityAccess, optionalAuth } from '../middleware/auth';
+import { validateBidding, validatePagination, validateUuidParam } from '../middleware/validation';
+import { asyncHandler } from '../middleware/errorHandler';
+import { BiddingController } from '../controllers/BiddingController';
 
 const router = Router();
 const biddingController = new BiddingController();

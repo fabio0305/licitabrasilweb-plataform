@@ -6,7 +6,7 @@ exports.disconnectDatabase = disconnectDatabase;
 exports.executeTransaction = executeTransaction;
 exports.checkDatabaseHealth = checkDatabaseHealth;
 const client_1 = require("@prisma/client");
-const logger_1 = require("@/utils/logger");
+const logger_1 = require("../utils/logger");
 const prisma = globalThis.__prisma || new client_1.PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
 });

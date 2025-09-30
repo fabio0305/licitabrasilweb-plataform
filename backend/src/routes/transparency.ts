@@ -1,62 +1,36 @@
 import { Router } from 'express';
-import { optionalAuth } from '@/middleware/auth';
-import { validatePagination, validateUuidParam, validateDateRange } from '@/middleware/validation';
-import { asyncHandler } from '@/middleware/errorHandler';
+import { optionalAuth } from '../middleware/auth';
+import { validatePagination, validateUuidParam, validateDateRange } from '../middleware/validation';
+import { asyncHandler } from '../middleware/errorHandler';
+import { TransparencyController } from '../controllers/TransparencyController';
 
 const router = Router();
+const transparencyController = new TransparencyController();
 
 // Todas as rotas são públicas (autenticação opcional)
 router.use(optionalAuth);
 
-// Rotas de transparência
-router.get('/biddings', validatePagination, validateDateRange, asyncHandler(async (req, res) => {
-  // TODO: Implementar listagem pública de licitações para transparência
-  res.json({ success: true, message: 'Licitações públicas para transparência - TODO' });
-}));
+// Dashboard público de transparência
+router.get('/dashboard', asyncHandler(transparencyController.getPublicDashboard));
 
-router.get('/biddings/:id', validateUuidParam, asyncHandler(async (req, res) => {
-  // TODO: Implementar detalhes públicos de licitação
-  res.json({ success: true, message: 'Detalhes públicos de licitação - TODO' });
-}));
+// Licitações públicas
+router.get('/biddings', validatePagination, asyncHandler(transparencyController.getPublicBiddings));
 
-router.get('/contracts', validatePagination, validateDateRange, asyncHandler(async (req, res) => {
-  // TODO: Implementar listagem pública de contratos
-  res.json({ success: true, message: 'Contratos públicos - TODO' });
-}));
+// Contratos públicos
+router.get('/contracts', validatePagination, asyncHandler(transparencyController.getPublicContracts));
 
-router.get('/contracts/:id', validateUuidParam, asyncHandler(async (req, res) => {
-  // TODO: Implementar detalhes públicos de contrato
-  res.json({ success: true, message: 'Detalhes públicos de contrato - TODO' });
-}));
+// Relatórios de gastos públicos
+router.get('/reports/spending', validateDateRange, asyncHandler(transparencyController.getPublicSpendingReport));
 
-router.get('/statistics', validateDateRange, asyncHandler(async (req, res) => {
-  // TODO: Implementar estatísticas públicas
-  res.json({ success: true, message: 'Estatísticas públicas - TODO' });
-}));
+// Manter rotas legadas para compatibilidade
+router.get('/statistics', validateDateRange, asyncHandler(transparencyController.getPublicDashboard));
 
-router.get('/reports/biddings', validateDateRange, asyncHandler(async (req, res) => {
-  // TODO: Implementar relatório de licitações
-  res.json({ success: true, message: 'Relatório de licitações - TODO' });
-}));
+router.get('/reports/biddings', validateDateRange, asyncHandler(transparencyController.getPublicBiddings));
 
-router.get('/reports/contracts', validateDateRange, asyncHandler(async (req, res) => {
-  // TODO: Implementar relatório de contratos
-  res.json({ success: true, message: 'Relatório de contratos - TODO' });
-}));
+router.get('/reports/contracts', validateDateRange, asyncHandler(transparencyController.getPublicContracts));
 
-router.get('/reports/suppliers', validateDateRange, asyncHandler(async (req, res) => {
-  // TODO: Implementar relatório de fornecedores
-  res.json({ success: true, message: 'Relatório de fornecedores - TODO' });
-}));
+router.get('/open-data/biddings', validatePagination, asyncHandler(transparencyController.getPublicBiddings));
 
-router.get('/open-data/biddings', validatePagination, asyncHandler(async (req, res) => {
-  // TODO: Implementar dados abertos de licitações
-  res.json({ success: true, message: 'Dados abertos de licitações - TODO' });
-}));
-
-router.get('/open-data/contracts', validatePagination, asyncHandler(async (req, res) => {
-  // TODO: Implementar dados abertos de contratos
-  res.json({ success: true, message: 'Dados abertos de contratos - TODO' });
-}));
+router.get('/open-data/contracts', validatePagination, asyncHandler(transparencyController.getPublicContracts));
 
 export default router;

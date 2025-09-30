@@ -1,0 +1,16 @@
+[0;32m[2025-09-30 01:51:57] ✅ 🚀 Iniciando configuração de monitoramento para produção - LicitaBrasil[0m
+[0;32m[2025-09-30 01:51:57] ✅ Criando estrutura de monitoramento...[0m
+[0;32m[2025-09-30 01:51:57] ✅ Estrutura de monitoramento criada[0m
+[0;32m[2025-09-30 01:51:57] ✅ Configurando Prometheus para produção...[0m
+[0;32m[2025-09-30 01:51:57] ✅ Prometheus configurado[0m
+[0;32m[2025-09-30 01:51:57] ✅ Configurando regras de alerta...[0m
+[0;32m[2025-09-30 01:51:57] ✅ Regras de alerta configuradas[0m
+[0;32m[2025-09-30 01:51:57] ✅ Configurando Alertmanager...[0m
+[0;32m[2025-09-30 01:51:57] ✅ Alertmanager configurado[0m
+[0;32m[2025-09-30 01:51:57] ✅ Configurando Grafana...[0m
+[0;32m[2025-09-30 01:51:57] ✅ Grafana configurado[0m
+[0;32m[2025-09-30 01:51:57] ✅ Configurando exporters...[0m
+[0;32m[2025-09-30 01:51:57] ✅ Exporters configurados[0m
+[0;32m[2025-09-30 01:51:57] ✅ Criando docker-compose para monitoramento...[0m
+[0;32m[2025-09-30 01:51:57] ✅ Docker-compose para monitoramento criado[0m
+[0;32m[2025-09-30 01:51:57] ✅ 🎉 Monitoramento para produção configurado com SUCESSO![0m

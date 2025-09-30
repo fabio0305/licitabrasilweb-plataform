@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminController = void 0;
-const database_1 = require("@/config/database");
-const errorHandler_1 = require("@/middleware/errorHandler");
-const logger_1 = require("@/utils/logger");
+const database_1 = require("../config/database");
+const errorHandler_1 = require("../middleware/errorHandler");
+const logger_1 = require("../utils/logger");
 class AdminController {
     async getConfig(req, res) {
         const configs = await database_1.prisma.systemConfig.findMany({

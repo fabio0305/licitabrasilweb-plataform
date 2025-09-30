@@ -1,5 +1,5 @@
 import { createClient, RedisClientType } from 'redis';
-import { logger } from '@/utils/logger';
+import { logger } from '../utils/logger';
 
 class RedisClient {
   private client: RedisClientType;

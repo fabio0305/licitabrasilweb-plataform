@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { authenticate, requireAdminAccess } from '@/middleware/auth';
-import { validatePagination, validateUuidParam } from '@/middleware/validation';
-import { asyncHandler } from '@/middleware/errorHandler';
-import { NotificationController } from '@/controllers/NotificationController';
+import { authenticate, requireAdminAccess } from '../middleware/auth';
+import { validatePagination, validateUuidParam } from '../middleware/validation';
+import { asyncHandler } from '../middleware/errorHandler';
+import { NotificationController } from '../controllers/NotificationController';
 
 const router = Router();
 const notificationController = new NotificationController();

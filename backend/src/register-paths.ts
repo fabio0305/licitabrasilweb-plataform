@@ -1,17 +1,4 @@
-import { register } from 'tsconfig-paths';
-import { resolve } from 'path';
+// Path registration for production - simplified version without tsconfig-paths dependency
+// In production, TypeScript compilation resolves all paths, so this is mostly a no-op
 
-// Registrar os path mappings do tsconfig.json
-register({
-  baseUrl: resolve(__dirname),
-  paths: {
-    '@/*': ['*'],
-    '@/controllers/*': ['controllers/*'],
-    '@/models/*': ['models/*'],
-    '@/routes/*': ['routes/*'],
-    '@/middleware/*': ['middleware/*'],
-    '@/utils/*': ['utils/*'],
-    '@/config/*': ['config/*'],
-    '@/types/*': ['types/*']
-  }
-});
+console.log('Path registration loaded for production environment');

@@ -3,22 +3,20 @@ import {
   IconButton,
   Badge,
   Menu,
-  MenuItem,
   Typography,
   Box,
   Divider,
   Button,
   List,
   ListItem,
+  ListItemButton,
   ListItemText,
   ListItemIcon,
   Chip,
-  Paper,
 } from '@mui/material';
 import {
   Notifications as NotificationsIcon,
   Gavel,
-  Business,
   Assignment,
   Info,
   Warning,
@@ -178,18 +176,17 @@ const NotificationCenter: React.FC = () => {
         ) : (
           <List sx={{ p: 0, maxHeight: 350, overflow: 'auto' }}>
             {notifications.map((notification, index) => (
-              <ListItem
-                key={index}
-                button
-                onClick={() => handleNotificationClick(index)}
-                sx={{
-                  borderLeft: 4,
-                  borderLeftColor: `${getNotificationColor(notification.type)}.main`,
-                  '&:hover': {
-                    backgroundColor: 'action.hover',
-                  },
-                }}
-              >
+              <ListItem key={index} disablePadding>
+                <ListItemButton
+                  onClick={() => handleNotificationClick(index)}
+                  sx={{
+                    borderLeft: 4,
+                    borderLeftColor: `${getNotificationColor(notification.type)}.main`,
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
+                    },
+                  }}
+                >
                 <ListItemIcon>
                   {getNotificationIcon(notification.type)}
                 </ListItemIcon>
@@ -219,6 +216,7 @@ const NotificationCenter: React.FC = () => {
                     </Box>
                   }
                 />
+                </ListItemButton>
               </ListItem>
             ))}
           </List>

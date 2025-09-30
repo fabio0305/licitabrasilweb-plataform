@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
 import { useAuth } from '../contexts/AuthContext';
 
 interface UseWebSocketOptions {
@@ -65,7 +66,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
       onDisconnect?.();
     });
 
-    socket.on('connect_error', (error) => {
+    socket.on('connect_error', (error: Error) => {
       console.error('Erro de conexão WebSocket:', error);
       setIsConnected(false);
       onError?.(error);

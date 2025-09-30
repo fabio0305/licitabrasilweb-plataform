@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PublicEntityController = void 0;
-const database_1 = require("@/config/database");
-const errorHandler_1 = require("@/middleware/errorHandler");
-const logger_1 = require("@/utils/logger");
+const database_1 = require("../config/database");
+const errorHandler_1 = require("../middleware/errorHandler");
+const logger_1 = require("../utils/logger");
 const client_1 = require("@prisma/client");
 class PublicEntityController {
     async list(req, res) {

@@ -1,0 +1,12 @@
+[0;32m[2025-09-30 01:37:07] ✅ 🚀 Iniciando testes de carga completos - LicitaBrasil Web Platform[0m
+[0;32m[2025-09-30 01:37:07] ✅ Criando diretórios de resultados...[0m
+[0;32m[2025-09-30 01:37:07] ✅ Diretórios criados com sucesso[0m
+[0;32m[2025-09-30 01:37:07] ✅ Verificando status do backend...[0m
+[0;32m[2025-09-30 01:37:07] ✅ Backend está rodando e respondendo[0m
+[0;34m[2025-09-30 01:37:08] ℹ️  INFO: Uptime do backend: N/A[0m
+[0;32m[2025-09-30 01:37:08] ✅ === EXECUTANDO TESTES DE CARGA BÁSICOS ===[0m
+[0;32m[2025-09-30 01:37:08] ✅ Executando teste de carga básico...[0m
+[0;34m[2025-09-30 01:37:08] ℹ️  INFO: Testando Health_Check - 10 usuários simultâneos, 50 requisições[0m
+[0;32m[2025-09-30 01:37:08] ✅ Health_Check - Sucesso: 100% (50/50), Throughput: 0 req/s[0m
+[0;32m[2025-09-30 01:37:08] ✅ Executando teste de carga básico...[0m
+[0;34m[2025-09-30 01:37:08] ℹ️  INFO: Testando Dashboard_Publico - 15 usuários simultâneos, 75 requisições[0m

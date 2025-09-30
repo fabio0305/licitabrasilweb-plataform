@@ -4,13 +4,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const node_cron_1 = __importDefault(require("node-cron"));
-const database_1 = require("@/config/database");
-const logger_1 = require("@/utils/logger");
+const database_1 = require("../config/database");
+const logger_1 = require("../utils/logger");
 const client_1 = require("@prisma/client");
 const notificationService_1 = __importDefault(require("./notificationService"));
+const backupService_1 = __importDefault(require("./backupService"));
 class SchedulerService {
     constructor() {
         this.notificationService = notificationService_1.default.getInstance();
+        this.backupService = backupService_1.default.getInstance();
     }
     static getInstance() {
         if (!SchedulerService.instance) {
@@ -37,6 +39,10 @@ class SchedulerService {
         });
         node_cron_1.default.schedule('0 8 * * *', async () => {
             await this.sendDailyStats();
+        });
+        const backupSchedule = process.env.BACKUP_SCHEDULE || '0 2 * * *';
+        node_cron_1.default.schedule(backupSchedule, async () => {
+            await this.performAutomaticBackup();
         });
         logger_1.logger.info('✅ Tarefas agendadas iniciadas com sucesso');
     }
@@ -217,6 +223,24 @@ Estatísticas de ${yesterday.toLocaleDateString('pt-BR')}:
         }
         catch (error) {
             logger_1.logger.error('Erro ao enviar estatísticas diárias:', error);
+        }
+    }
+    async performAutomaticBackup() {
+        try {
+            logger_1.logger.info('Iniciando backup automático...');
+            const result = await this.backupService.createFullBackup({
+                includeDatabase: true,
+                includeUploads: true,
+            });
+            if (result.success) {
+                logger_1.logger.info(`Backup automático concluído com sucesso em ${result.duration}ms`);
+            }
+            else {
+                logger_1.logger.error('Backup automático falhou');
+            }
+        }
+        catch (error) {
+            logger_1.logger.error('Erro no backup automático:', error);
         }
     }
     stopScheduledTasks() {

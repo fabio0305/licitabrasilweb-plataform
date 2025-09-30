@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  # Banco de dados PostgreSQL para desenvolvimento
+  postgres-dev:
+    image: postgres:15-alpine
+    container_name: licitabrasil-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: licita_brasil_web_dev
+      POSTGRES_USER: licitabrasil
+      POSTGRES_PASSWORD: licitabrasil123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./backend/database/init:/docker-entrypoint-initdb.d
+    networks:
+      - licitabrasil-dev-network
+
+  # Cache Redis para desenvolvimento
+  redis-dev:
+    image: redis:7-alpine
+    container_name: licitabrasil-redis-dev
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - licitabrasil-dev-network
+
+  # Backend em modo desenvolvimento
+  backend-dev:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: licitabrasil-backend-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://licitabrasil:licitabrasil123@postgres-dev:5432/licita_brasil_web_dev?schema=public
+      REDIS_URL: redis://redis-dev:6379
+      JWT_SECRET: dev-jwt-secret-key
+      JWT_REFRESH_SECRET: dev-refresh-secret-key
+      CORS_ORIGINS: http://localhost:3000,http://localhost:3001
+      LOG_LEVEL: debug
+    ports:
+      - "3001:3001"
+      - "9229:9229" # Debug port
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - ./backend/uploads:/app/uploads
+      - ./backend/logs:/app/logs
+    networks:
+      - licitabrasil-dev-network
+    depends_on:
+      - postgres-dev
+      - redis-dev
+    command: npm run dev
+
+  # Adminer para gerenciamento do banco
+  adminer:
+    image: adminer:latest
+    container_name: licitabrasil-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    networks:
+      - licitabrasil-dev-network
+    depends_on:
+      - postgres-dev
+
+  # Redis Commander para gerenciamento do Redis
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: licitabrasil-redis-commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis-dev:6379
+    ports:
+      - "8081:8081"
+    networks:
+      - licitabrasil-dev-network
+    depends_on:
+      - redis-dev
+
+volumes:
+  postgres_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+
+networks:
+  licitabrasil-dev-network:
+    driver: bridge

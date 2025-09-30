@@ -1,0 +1,10 @@
+=== Teste de Carga Básico: Health_Check ===
+Endpoint: /health
+Usuários simultâneos: 10
+Total de requisições: 50
+Requisições bem-sucedidas: 50
+Taxa de sucesso: 100%
+Tempo total: 0s
+Tempo médio de resposta: 29ms
+Throughput: 0 req/s
+

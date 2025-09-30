@@ -1,0 +1,20 @@
+[0;32m[2025-09-30 01:23:43] ✅ 🚀 Iniciando deploy de staging - LicitaBrasil Web Platform[0m
+[0;32m[2025-09-30 01:23:43] ✅ Criando diretórios necessários...[0m
+[0;32m[2025-09-30 01:23:43] ✅ Diretórios criados com sucesso[0m
+[0;32m[2025-09-30 01:23:43] ✅ Verificando pré-requisitos para staging...[0m
+[1;33m[2025-09-30 01:23:43] ⚠️  WARNING: Docker não está instalado. Tentando instalar...[0m
+[0;34m[2025-09-30 01:23:43] ℹ️  INFO: Instalando Docker...[0m
+[0;32m[2025-09-30 01:27:56] ✅ Docker instalado com sucesso[0m
+[1;33m[2025-09-30 01:27:56] ⚠️  WARNING: Docker Compose não está instalado. Tentando instalar...[0m
+[0;34m[2025-09-30 01:27:56] ℹ️  INFO: Instalando Docker Compose...[0m
+[0;32m[2025-09-30 01:27:58] ✅ Docker Compose instalado com sucesso[0m
+[0;32m[2025-09-30 01:27:58] ✅ Pré-requisitos verificados[0m
+[0;32m[2025-09-30 01:27:58] ✅ Fazendo backup do ambiente atual...[0m
+[0;32m[2025-09-30 01:27:58] ✅ Backup concluído em ./backups/staging/20250930_012343[0m
+[0;32m[2025-09-30 01:27:58] ✅ Parando serviços existentes...[0m
+[0;32m[2025-09-30 01:27:58] ✅ Serviços existentes parados[0m
+[0;32m[2025-09-30 01:27:58] ✅ Configurando ambiente de staging...[0m
+[0;32m[2025-09-30 01:27:58] ✅ Ambiente de staging configurado[0m
+[0;32m[2025-09-30 01:27:58] ✅ Executando deploy de staging...[0m
+[0;34m[2025-09-30 01:27:58] ℹ️  INFO: Fazendo build das imagens Docker...[0m
+[0;34m[2025-09-30 01:31:00] ℹ️  INFO: Iniciando serviços...[0m

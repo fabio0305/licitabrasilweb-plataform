@@ -20,6 +20,7 @@ interface BulkNotificationData {
 declare class NotificationService {
     private static instance;
     private websocketService?;
+    private emailService;
     private constructor();
     static getInstance(): NotificationService;
     setWebSocketService(websocketService: WebSocketService): void;

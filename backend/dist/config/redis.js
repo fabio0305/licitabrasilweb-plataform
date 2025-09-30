@@ -4,7 +4,7 @@ exports.redisClient = void 0;
 exports.connectRedis = connectRedis;
 exports.disconnectRedis = disconnectRedis;
 const redis_1 = require("redis");
-const logger_1 = require("@/utils/logger");
+const logger_1 = require("../utils/logger");
 class RedisClient {
     constructor() {
         this.isConnected = false;

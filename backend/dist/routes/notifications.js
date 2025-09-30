@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const auth_1 = require("@/middleware/auth");
-const validation_1 = require("@/middleware/validation");
-const errorHandler_1 = require("@/middleware/errorHandler");
-const NotificationController_1 = require("@/controllers/NotificationController");
+const auth_1 = require("../middleware/auth");
+const validation_1 = require("../middleware/validation");
+const errorHandler_1 = require("../middleware/errorHandler");
+const NotificationController_1 = require("../controllers/NotificationController");
 const router = (0, express_1.Router)();
 const notificationController = new NotificationController_1.NotificationController();
 router.use(auth_1.authenticate);

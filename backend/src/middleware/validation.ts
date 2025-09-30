@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import Joi from 'joi';
-import { ValidationError } from '@/middleware/errorHandler';
+import { ValidationError } from '../middleware/errorHandler';
 
 // Interface para opções de validação
 interface ValidationOptions {
@@ -266,4 +266,20 @@ export const validatePagination = validate({
 
 export const validateDateRange = validate({
   query: dateRangeSchema,
+});
+
+// Schema para cidadão
+export const citizenSchema = Joi.object({
+  cpf: cpfSchema.optional(),
+  dateOfBirth: Joi.date().max('now').optional(),
+  profession: Joi.string().min(2).max(100).optional(),
+  address: Joi.string().min(5).max(500).optional(),
+  city: Joi.string().min(2).max(100).optional(),
+  state: Joi.string().length(2).optional(),
+  zipCode: zipCodeSchema.optional(),
+  interests: Joi.array().items(Joi.string().min(1).max(100)).optional(),
+});
+
+export const validateCitizen = validate({
+  body: citizenSchema,
 });

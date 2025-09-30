@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { authenticate } from '@/middleware/auth';
-import { validatePagination, validateUuidParam } from '@/middleware/validation';
-import { asyncHandler } from '@/middleware/errorHandler';
-import { DocumentController } from '@/controllers/DocumentController';
+import { authenticate } from '../middleware/auth';
+import { validatePagination, validateUuidParam } from '../middleware/validation';
+import { asyncHandler } from '../middleware/errorHandler';
+import { DocumentController } from '../controllers/DocumentController';
 import multer from 'multer';
 
 const router = Router();

@@ -1,7 +1,8 @@
-import { prisma } from '@/config/database';
-import { logger } from '@/utils/logger';
+import { prisma } from '../config/database';
+import { logger } from '../utils/logger';
 import { UserRole } from '@prisma/client';
 import WebSocketService from './websocket';
+import EmailService from './emailService';
 
 interface NotificationData {
   title: string;
@@ -26,8 +27,11 @@ interface BulkNotificationData {
 class NotificationService {
   private static instance: NotificationService;
   private websocketService?: WebSocketService;
+  private emailService: EmailService;
 
-  private constructor() {}
+  private constructor() {
+    this.emailService = EmailService.getInstance();
+  }
 
   public static getInstance(): NotificationService {
     if (!NotificationService.instance) {
@@ -116,16 +120,17 @@ class NotificationService {
   // Notificar sobre nova licitação
   public async notifyNewBidding(biddingId: string, biddingTitle: string): Promise<void> {
     try {
-      // Buscar todos os fornecedores ativos
+      // Buscar todos os fornecedores ativos com emails
       const suppliers = await prisma.user.findMany({
         where: {
           role: UserRole.SUPPLIER,
           status: 'ACTIVE',
         },
-        select: { id: true },
+        select: { id: true, email: true },
       });
 
       const supplierIds = suppliers.map(s => s.id);
+      const supplierEmails = suppliers.map(s => s.email);
 
       await this.createBulkNotifications({
         title: 'Nova Licitação Disponível',
@@ -143,6 +148,29 @@ class NotificationService {
           biddingId,
           title: biddingTitle,
           message: `Nova licitação disponível: ${biddingTitle}`,
+        });
+      }
+
+      // Buscar dados completos da licitação para email
+      const bidding = await prisma.bidding.findUnique({
+        where: { id: biddingId },
+        include: {
+          publicEntity: {
+            select: { name: true },
+          },
+        },
+      });
+
+      if (bidding && supplierEmails.length > 0) {
+        // Enviar email para fornecedores
+        await this.emailService.sendNewBiddingEmail(supplierEmails, {
+          biddingTitle: bidding.title,
+          biddingNumber: bidding.biddingNumber,
+          openingDate: bidding.openingDate,
+          closingDate: bidding.closingDate,
+          estimatedValue: Number(bidding.estimatedValue),
+          publicEntityName: bidding.publicEntity.name,
+          biddingUrl: `${process.env.FRONTEND_URL}/biddings/${biddingId}`,
         });
       }
     } catch (error) {
@@ -167,6 +195,29 @@ class NotificationService {
         relatedType: 'proposal',
         metadata: { proposalId, supplierName, biddingTitle },
       });
+
+      // Buscar email do usuário do órgão público e dados da proposta
+      const [user, proposal] = await Promise.all([
+        prisma.user.findUnique({
+          where: { id: publicEntityUserId },
+          select: { email: true },
+        }),
+        prisma.proposal.findUnique({
+          where: { id: proposalId },
+          select: { totalValue: true, submittedAt: true },
+        }),
+      ]);
+
+      if (user && proposal) {
+        // Enviar email para o órgão público
+        await this.emailService.sendProposalReceivedEmail(user.email, {
+          biddingTitle,
+          supplierName,
+          proposalValue: Number(proposal.totalValue),
+          submissionDate: proposal.submittedAt || new Date(),
+          proposalUrl: `${process.env.FRONTEND_URL}/proposals/${proposalId}`,
+        });
+      }
     } catch (error) {
       logger.error('Erro ao notificar proposta recebida:', error);
     }
@@ -217,6 +268,7 @@ class NotificationService {
       });
 
       const participantIds = proposals.map(p => p.supplier.userId);
+      const participantEmails = proposals.map(p => p.supplier.user.email);
 
       if (participantIds.length > 0) {
         await this.createBulkNotifications({
@@ -228,6 +280,16 @@ class NotificationService {
           relatedType: 'bidding',
           metadata: { biddingId, biddingTitle, hoursLeft },
         });
+
+        // Enviar email para participantes
+        if (participantEmails.length > 0) {
+          await this.emailService.sendBiddingClosingSoonEmail(
+            participantEmails,
+            biddingTitle,
+            hoursLeft,
+            `${process.env.FRONTEND_URL}/biddings/${biddingId}`
+          );
+        }
       }
     } catch (error) {
       logger.error('Erro ao notificar licitação fechando:', error);

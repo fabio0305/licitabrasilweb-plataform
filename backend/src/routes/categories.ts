@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { authenticate, requireAdminAccess } from '@/middleware/auth';
-import { validateCategory, validatePagination, validateUuidParam } from '@/middleware/validation';
-import { asyncHandler } from '@/middleware/errorHandler';
-import { CategoryController } from '@/controllers/CategoryController';
+import { authenticate, requireAdminAccess } from '../middleware/auth';
+import { validateCategory, validatePagination, validateUuidParam } from '../middleware/validation';
+import { asyncHandler } from '../middleware/errorHandler';
+import { CategoryController } from '../controllers/CategoryController';
 
 const router = Router();
 const categoryController = new CategoryController();

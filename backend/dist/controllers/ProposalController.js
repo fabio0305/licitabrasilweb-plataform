@@ -4,11 +4,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProposalController = void 0;
-const database_1 = require("@/config/database");
-const errorHandler_1 = require("@/middleware/errorHandler");
-const logger_1 = require("@/utils/logger");
+const database_1 = require("../config/database");
+const errorHandler_1 = require("../middleware/errorHandler");
+const logger_1 = require("../utils/logger");
 const client_1 = require("@prisma/client");
-const notificationService_1 = __importDefault(require("@/services/notificationService"));
+const notificationService_1 = __importDefault(require("../services/notificationService"));
 class ProposalController {
     async list(req, res) {
         const { page = 1, limit = 10, search, status, biddingId } = req.query;

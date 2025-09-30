@@ -1,6 +1,7 @@
 declare class SchedulerService {
     private static instance;
     private notificationService;
+    private backupService;
     private constructor();
     static getInstance(): SchedulerService;
     startScheduledTasks(): void;
@@ -9,6 +10,7 @@ declare class SchedulerService {
     private autoOpenBiddings;
     private cleanupOldNotifications;
     private sendDailyStats;
+    private performAutomaticBackup;
     stopScheduledTasks(): void;
     getTasksStatus(): {
         totalTasks: number;

@@ -4,10 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const auth_1 = require("@/middleware/auth");
-const validation_1 = require("@/middleware/validation");
-const errorHandler_1 = require("@/middleware/errorHandler");
-const DocumentController_1 = require("@/controllers/DocumentController");
+const auth_1 = require("../middleware/auth");
+const validation_1 = require("../middleware/validation");
+const errorHandler_1 = require("../middleware/errorHandler");
+const DocumentController_1 = require("../controllers/DocumentController");
 const multer_1 = __importDefault(require("multer"));
 const router = (0, express_1.Router)();
 const documentController = new DocumentController_1.DocumentController();

@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { authenticate, requirePublicEntityAccess, requireSupplierAccess } from '@/middleware/auth';
-import { validateContract, validatePagination, validateUuidParam } from '@/middleware/validation';
-import { asyncHandler } from '@/middleware/errorHandler';
-import { ContractController } from '@/controllers/ContractController';
+import { authenticate, requirePublicEntityAccess, requireSupplierAccess } from '../middleware/auth';
+import { validateContract, validatePagination, validateUuidParam } from '../middleware/validation';
+import { asyncHandler } from '../middleware/errorHandler';
+import { ContractController } from '../controllers/ContractController';
 
 const router = Router();
 const contractController = new ContractController();

@@ -1,0 +1,186 @@
+# Configuração de testes de carga com Artillery
+config:
+  target: 'http://localhost:3001'
+  phases:
+    # Fase 1: Warm-up - Aumentar gradualmente
+    - duration: 60
+      arrivalRate: 1
+      rampTo: 10
+      name: "Warm-up phase"
+    
+    # Fase 2: Carga normal - Simular uso típico
+    - duration: 300
+      arrivalRate: 10
+      name: "Normal load phase"
+    
+    # Fase 3: Pico de carga - Simular horário de pico
+    - duration: 120
+      arrivalRate: 10
+      rampTo: 50
+      name: "Peak load phase"
+    
+    # Fase 4: Stress test - Testar limites
+    - duration: 60
+      arrivalRate: 50
+      rampTo: 100
+      name: "Stress test phase"
+    
+    # Fase 5: Cool down - Reduzir gradualmente
+    - duration: 60
+      arrivalRate: 100
+      rampTo: 1
+      name: "Cool down phase"
+
+  defaults:
+    headers:
+      Content-Type: 'application/json'
+      User-Agent: 'Artillery Load Test'
+  
+  # Configurações de timeout e conexão
+  http:
+    timeout: 30
+    pool: 50
+  
+  # Plugins para métricas avançadas
+  plugins:
+    metrics-by-endpoint:
+      useOnlyRequestNames: true
+    
+  # Variáveis de ambiente
+  variables:
+    apiVersion: 'v1'
+
+# Cenários de teste
+scenarios:
+  # Cenário 1: Usuários navegando publicamente
+  - name: "Public browsing"
+    weight: 40
+    flow:
+      - get:
+          url: "/api/{{ apiVersion }}/transparency/dashboard"
+          name: "Get transparency dashboard"
+      - think: 2
+      - get:
+          url: "/api/{{ apiVersion }}/transparency/biddings?page=1&limit=10"
+          name: "List public biddings"
+      - think: 3
+      - get:
+          url: "/api/{{ apiVersion }}/transparency/contracts?page=1&limit=10"
+          name: "List public contracts"
+
+  # Cenário 2: Login e navegação autenticada
+  - name: "Authenticated user flow"
+    weight: 30
+    flow:
+      # Login
+      - post:
+          url: "/api/{{ apiVersion }}/auth/login"
+          name: "User login"
+          json:
+            email: "{{ $randomString() }}@test.com"
+            password: "Test123!@#"
+          capture:
+            - json: "$.data.tokens.accessToken"
+              as: "accessToken"
+      
+      # Verificar se login foi bem-sucedido
+      - ifTrue: "accessToken"
+        then:
+          # Obter perfil do usuário
+          - get:
+              url: "/api/{{ apiVersion }}/auth/profile"
+              name: "Get user profile"
+              headers:
+                Authorization: "Bearer {{ accessToken }}"
+          - think: 2
+          
+          # Navegar baseado no tipo de usuário
+          - get:
+              url: "/api/{{ apiVersion }}/supplier-dashboard/dashboard"
+              name: "Get supplier dashboard"
+              headers:
+                Authorization: "Bearer {{ accessToken }}"
+          - think: 3
+          
+          - get:
+              url: "/api/{{ apiVersion }}/supplier-dashboard/biddings/available"
+              name: "Get available biddings"
+              headers:
+                Authorization: "Bearer {{ accessToken }}"
+
+  # Cenário 3: Busca e filtros
+  - name: "Search and filtering"
+    weight: 20
+    flow:
+      - get:
+          url: "/api/{{ apiVersion }}/transparency/biddings?search=tecnologia&page=1&limit=20"
+          name: "Search biddings by keyword"
+      - think: 1
+      - get:
+          url: "/api/{{ apiVersion }}/transparency/biddings?city=São Paulo&status=OPEN"
+          name: "Filter biddings by city and status"
+      - think: 2
+      - get:
+          url: "/api/{{ apiVersion }}/transparency/contracts?minValue=10000&maxValue=100000"
+          name: "Filter contracts by value range"
+
+  # Cenário 4: Operações administrativas
+  - name: "Admin operations"
+    weight: 10
+    flow:
+      # Login como admin
+      - post:
+          url: "/api/{{ apiVersion }}/auth/login"
+          name: "Admin login"
+          json:
+            email: "admin@licitabrasil.com"
+            password: "Test123!@#"
+          capture:
+            - json: "$.data.tokens.accessToken"
+              as: "adminToken"
+      
+      - ifTrue: "adminToken"
+        then:
+          # Dashboard administrativo
+          - get:
+              url: "/api/{{ apiVersion }}/admin/users?page=1&limit=50"
+              name: "List users (admin)"
+              headers:
+                Authorization: "Bearer {{ adminToken }}"
+          - think: 2
+          
+          # Estatísticas do sistema
+          - get:
+              url: "/health"
+              name: "System health check"
+          - think: 1
+          
+          # Logs de auditoria
+          - get:
+              url: "/api/{{ apiVersion }}/admin/audit-logs?page=1&limit=20"
+              name: "Get audit logs"
+              headers:
+                Authorization: "Bearer {{ adminToken }}"
+
+# Configurações específicas para diferentes ambientes
+environments:
+  development:
+    target: 'http://localhost:3001'
+    phases:
+      - duration: 30
+        arrivalRate: 1
+        rampTo: 5
+  
+  staging:
+    target: 'https://staging.licitabrasilweb.com.br'
+    phases:
+      - duration: 120
+        arrivalRate: 5
+        rampTo: 25
+  
+  production:
+    target: 'https://api.licitabrasilweb.com.br'
+    phases:
+      - duration: 300
+        arrivalRate: 10
+        rampTo: 100

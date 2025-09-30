@@ -1,10 +1,16 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const database_1 = require("@/config/database");
-const logger_1 = require("@/utils/logger");
+const database_1 = require("../config/database");
+const logger_1 = require("../utils/logger");
 const client_1 = require("@prisma/client");
+const emailService_1 = __importDefault(require("./emailService"));
 class NotificationService {
-    constructor() { }
+    constructor() {
+        this.emailService = emailService_1.default.getInstance();
+    }
     static getInstance() {
         if (!NotificationService.instance) {
             NotificationService.instance = new NotificationService();
@@ -84,9 +90,10 @@ class NotificationService {
                     role: client_1.UserRole.SUPPLIER,
                     status: 'ACTIVE',
                 },
-                select: { id: true },
+                select: { id: true, email: true },
             });
             const supplierIds = suppliers.map(s => s.id);
+            const supplierEmails = suppliers.map(s => s.email);
             await this.createBulkNotifications({
                 title: 'Nova Licitação Disponível',
                 message: `Uma nova licitação foi publicada: ${biddingTitle}`,
@@ -101,6 +108,25 @@ class NotificationService {
                     biddingId,
                     title: biddingTitle,
                     message: `Nova licitação disponível: ${biddingTitle}`,
+                });
+            }
+            const bidding = await database_1.prisma.bidding.findUnique({
+                where: { id: biddingId },
+                include: {
+                    publicEntity: {
+                        select: { name: true },
+                    },
+                },
+            });
+            if (bidding && supplierEmails.length > 0) {
+                await this.emailService.sendNewBiddingEmail(supplierEmails, {
+                    biddingTitle: bidding.title,
+                    biddingNumber: bidding.biddingNumber,
+                    openingDate: bidding.openingDate,
+                    closingDate: bidding.closingDate,
+                    estimatedValue: Number(bidding.estimatedValue),
+                    publicEntityName: bidding.publicEntity.name,
+                    biddingUrl: `${process.env.FRONTEND_URL}/biddings/${biddingId}`,
                 });
             }
         }
@@ -119,6 +145,25 @@ class NotificationService {
                 relatedType: 'proposal',
                 metadata: { proposalId, supplierName, biddingTitle },
             });
+            const [user, proposal] = await Promise.all([
+                database_1.prisma.user.findUnique({
+                    where: { id: publicEntityUserId },
+                    select: { email: true },
+                }),
+                database_1.prisma.proposal.findUnique({
+                    where: { id: proposalId },
+                    select: { totalValue: true, submittedAt: true },
+                }),
+            ]);
+            if (user && proposal) {
+                await this.emailService.sendProposalReceivedEmail(user.email, {
+                    biddingTitle,
+                    supplierName,
+                    proposalValue: Number(proposal.totalValue),
+                    submissionDate: proposal.submittedAt || new Date(),
+                    proposalUrl: `${process.env.FRONTEND_URL}/proposals/${proposalId}`,
+                });
+            }
         }
         catch (error) {
             logger_1.logger.error('Erro ao notificar proposta recebida:', error);
@@ -158,6 +203,7 @@ class NotificationService {
                 },
             });
             const participantIds = proposals.map(p => p.supplier.userId);
+            const participantEmails = proposals.map(p => p.supplier.user.email);
             if (participantIds.length > 0) {
                 await this.createBulkNotifications({
                     title: 'Licitação Fechando em Breve',
@@ -168,6 +214,9 @@ class NotificationService {
                     relatedType: 'bidding',
                     metadata: { biddingId, biddingTitle, hoursLeft },
                 });
+                if (participantEmails.length > 0) {
+                    await this.emailService.sendBiddingClosingSoonEmail(participantEmails, biddingTitle, hoursLeft, `${process.env.FRONTEND_URL}/biddings/${biddingId}`);
+                }
             }
         }
         catch (error) {

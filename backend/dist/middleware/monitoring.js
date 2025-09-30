@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.cleanupMetrics = exports.getMetrics = exports.monitoringMiddleware = void 0;
-const logger_1 = require("@/utils/logger");
+const logger_1 = require("../utils/logger");
 const metrics = [];
 const MAX_METRICS = 10000;
 const monitoringMiddleware = (req, res, next) => {

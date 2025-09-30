@@ -20,6 +20,7 @@ import {
   Toolbar,
   IconButton,
 } from '@mui/material';
+
 import {
   Search,
   FilterList,
@@ -154,7 +155,7 @@ const BiddingsPage: React.FC = () => {
             
             <Box component="form" onSubmit={handleSearch}>
               <Grid container spacing={2} alignItems="center">
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <TextField
                     fullWidth
                     label="Buscar licitações"
@@ -165,8 +166,8 @@ const BiddingsPage: React.FC = () => {
                     }}
                   />
                 </Grid>
-                
-                <Grid item xs={12} md={3}>
+
+                <Grid size={{ xs: 12, md: 3 }}>
                   <FormControl fullWidth>
                     <InputLabel>Status</InputLabel>
                     <Select
@@ -181,8 +182,8 @@ const BiddingsPage: React.FC = () => {
                     </Select>
                   </FormControl>
                 </Grid>
-                
-                <Grid item xs={12} md={3}>
+
+                <Grid size={{ xs: 12, md: 3 }}>
                   <FormControl fullWidth>
                     <InputLabel>Tipo</InputLabel>
                     <Select
@@ -197,8 +198,8 @@ const BiddingsPage: React.FC = () => {
                     </Select>
                   </FormControl>
                 </Grid>
-                
-                <Grid item xs={12} md={2}>
+
+                <Grid size={{ xs: 12, md: 2 }}>
                   <Button
                     type="submit"
                     variant="contained"
@@ -236,7 +237,7 @@ const BiddingsPage: React.FC = () => {
 
             <Grid container spacing={3}>
               {biddings.map((bidding) => (
-                <Grid item xs={12} key={bidding.id}>
+                <Grid size={{ xs: 12 }} key={bidding.id}>
                   <Card>
                     <CardContent>
                       <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
@@ -267,7 +268,7 @@ const BiddingsPage: React.FC = () => {
                       </Typography>
 
                       <Grid container spacing={2} sx={{ mb: 2 }}>
-                        <Grid item xs={12} sm={6} md={3}>
+                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                           <Box display="flex" alignItems="center">
                             <AttachMoney sx={{ mr: 1, color: 'text.secondary' }} />
                             <Box>
@@ -281,7 +282,7 @@ const BiddingsPage: React.FC = () => {
                           </Box>
                         </Grid>
 
-                        <Grid item xs={12} sm={6} md={3}>
+                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                           <Box display="flex" alignItems="center">
                             <CalendarToday sx={{ mr: 1, color: 'text.secondary' }} />
                             <Box>
@@ -295,7 +296,7 @@ const BiddingsPage: React.FC = () => {
                           </Box>
                         </Grid>
 
-                        <Grid item xs={12} sm={6} md={3}>
+                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                           <Box display="flex" alignItems="center">
                             <CalendarToday sx={{ mr: 1, color: 'text.secondary' }} />
                             <Box>
@@ -309,7 +310,7 @@ const BiddingsPage: React.FC = () => {
                           </Box>
                         </Grid>
 
-                        <Grid item xs={12} sm={6} md={3}>
+                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                           <Box display="flex" alignItems="center">
                             <Business sx={{ mr: 1, color: 'text.secondary' }} />
                             <Box>

@@ -1,8 +1,8 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import jwt from 'jsonwebtoken';
-import { prisma } from '@/config/database';
-import { logger } from '@/utils/logger';
+import { prisma } from '../config/database';
+import { logger } from '../utils/logger';
 import { UserRole } from '@prisma/client';
 
 interface AuthenticatedSocket extends Socket {

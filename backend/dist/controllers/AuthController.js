@@ -6,11 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const uuid_1 = require("uuid");
-const database_1 = require("@/config/database");
-const redis_1 = require("@/config/redis");
-const auth_1 = require("@/middleware/auth");
-const errorHandler_1 = require("@/middleware/errorHandler");
-const logger_1 = require("@/utils/logger");
+const database_1 = require("../config/database");
+const redis_1 = require("../config/redis");
+const auth_1 = require("../middleware/auth");
+const errorHandler_1 = require("../middleware/errorHandler");
+const logger_1 = require("../utils/logger");
+const client_1 = require("@prisma/client");
 class AuthController {
     async register(req, res) {
         const { email, password, firstName, lastName, phone, role } = req.body;
@@ -21,6 +22,10 @@ class AuthController {
             throw new errorHandler_1.ConflictError('Email já está em uso');
         }
         const hashedPassword = await bcryptjs_1.default.hash(password, parseInt(process.env.BCRYPT_ROUNDS || '12'));
+        let initialStatus = client_1.UserStatus.PENDING;
+        if (role === 'CITIZEN') {
+            initialStatus = client_1.UserStatus.ACTIVE;
+        }
         const user = await database_1.prisma.user.create({
             data: {
                 email,
@@ -29,7 +34,7 @@ class AuthController {
                 lastName,
                 phone,
                 role,
-                status: 'PENDING',
+                status: initialStatus,
             },
             select: {
                 id: true,
@@ -43,9 +48,12 @@ class AuthController {
         });
         (0, logger_1.logAuth)('Usuário registrado', user.id, req.ip);
         (0, logger_1.logUserActivity)(user.id, 'USER_REGISTERED');
+        const message = role === 'CITIZEN'
+            ? 'Usuário registrado com sucesso.'
+            : 'Usuário registrado com sucesso. Aguarde aprovação.';
         res.status(201).json({
             success: true,
-            message: 'Usuário registrado com sucesso. Aguarde aprovação.',
+            message,
             data: { user },
         });
     }

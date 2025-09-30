@@ -1,5 +1,5 @@
 // Registrar path mappings primeiro
-import './register-paths';
+// import './register-paths'; // Comentado para produção - paths são resolvidos durante build
 
 import express from 'express';
 import cors from 'cors';
@@ -10,32 +10,44 @@ import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import { createServer } from 'http';
 import swaggerUi from 'swagger-ui-express';
-import { swaggerSpec } from '@/config/swagger';
-import WebSocketService from '@/services/websocket';
-import NotificationService from '@/services/notificationService';
-import SchedulerService from '@/services/schedulerService';
+import { swaggerSpec } from './config/swagger';
+import WebSocketService from './services/websocket';
+import NotificationService from './services/notificationService';
+import SchedulerService from './services/schedulerService';
 
-import { errorHandler } from '@/middleware/errorHandler';
-import { notFoundHandler } from '@/middleware/notFoundHandler';
-import { monitoringMiddleware } from '@/middleware/monitoring';
-import { logger } from '@/utils/logger';
-import { connectDatabase } from '@/config/database';
-import { connectRedis } from '@/config/redis';
+import { errorHandler } from './middleware/errorHandler';
+import { notFoundHandler } from './middleware/notFoundHandler';
+import { monitoringMiddleware } from './middleware/monitoring';
+import { logger } from './utils/logger';
+import {
+  frontendIntegration,
+  paginationHeaders,
+  frontendLogger,
+  frontendErrorHandler,
+  userContextMiddleware,
+  developmentDebug
+} from './middleware/frontend';
+import { connectDatabase } from './config/database';
+import { connectRedis } from './config/redis';
 
 // Importar rotas
-import authRoutes from '@/routes/auth';
-import userRoutes from '@/routes/users';
-import supplierRoutes from '@/routes/suppliers';
-import publicEntityRoutes from '@/routes/publicEntities';
-import biddingRoutes from '@/routes/biddings';
-import proposalRoutes from '@/routes/proposals';
-import contractRoutes from '@/routes/contracts';
-import categoryRoutes from '@/routes/categories';
-import documentRoutes from '@/routes/documents';
-import notificationRoutes from '@/routes/notifications';
-import transparencyRoutes from '@/routes/transparency';
-import adminRoutes from '@/routes/admin';
-import monitoringRoutes from '@/routes/monitoring';
+import authRoutes from './routes/auth';
+import userRoutes from './routes/users';
+import supplierRoutes from './routes/suppliers';
+import publicEntityRoutes from './routes/publicEntities';
+import biddingRoutes from './routes/biddings';
+import proposalRoutes from './routes/proposals';
+import contractRoutes from './routes/contracts';
+import categoryRoutes from './routes/categories';
+import documentRoutes from './routes/documents';
+import notificationRoutes from './routes/notifications';
+import transparencyRoutes from './routes/transparency';
+import adminRoutes from './routes/admin';
+import monitoringRoutes from './routes/monitoring';
+import backupRoutes from './routes/backup';
+import citizenRoutes from './routes/citizens';
+import buyerRoutes from './routes/buyers';
+import supplierDashboardRoutes from './routes/supplierDashboard';
 
 // Carregar variáveis de ambiente
 dotenv.config();
@@ -70,6 +82,16 @@ app.use(cors(corsOptions));
 app.use(compression());
 app.use(morgan('combined', { stream: { write: (message) => logger.info(message.trim()) } }));
 app.use(monitoringMiddleware); // Middleware de monitoramento
+
+// Middlewares específicos para integração frontend
+app.use(frontendIntegration);
+app.use(paginationHeaders);
+app.use(frontendLogger);
+app.use(userContextMiddleware);
+if (process.env.NODE_ENV === 'development') {
+  app.use(developmentDebug);
+}
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -109,9 +131,14 @@ app.use(`${API_PREFIX}/notifications`, notificationRoutes);
 app.use(`${API_PREFIX}/transparency`, transparencyRoutes);
 app.use(`${API_PREFIX}/admin`, adminRoutes);
 app.use(`${API_PREFIX}/monitoring`, monitoringRoutes);
+app.use(`${API_PREFIX}/backup`, backupRoutes);
+app.use(`${API_PREFIX}/citizens`, citizenRoutes);
+app.use(`${API_PREFIX}/buyers`, buyerRoutes);
+app.use(`${API_PREFIX}/supplier-dashboard`, supplierDashboardRoutes);
 
 // Middleware de tratamento de erros
 app.use(notFoundHandler);
+app.use(frontendErrorHandler); // Error handler específico para frontend
 app.use(errorHandler);
 
 // Inicialização do servidor

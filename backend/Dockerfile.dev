@@ -1,0 +1,32 @@
+# Dockerfile para desenvolvimento
+FROM node:18-alpine
+
+# Instalar ferramentas de desenvolvimento
+RUN apk add --no-cache git
+
+# Definir diretório de trabalho
+WORKDIR /app
+
+# Copiar arquivos de dependências
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Instalar todas as dependências (incluindo dev)
+RUN npm install
+
+# Gerar cliente Prisma
+RUN npx prisma generate
+
+# Criar diretórios necessários
+RUN mkdir -p /app/logs /app/uploads /app/temp
+
+# Definir variáveis de ambiente para desenvolvimento
+ENV NODE_ENV=development
+ENV PORT=3001
+ENV LOG_LEVEL=debug
+
+# Expor portas (aplicação e debug)
+EXPOSE 3001 9229
+
+# Comando padrão (pode ser sobrescrito no docker-compose)
+CMD ["npm", "run", "dev"]

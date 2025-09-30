@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const auth_1 = require("@/middleware/auth");
+const auth_1 = require("../middleware/auth");
 const client_1 = require("@prisma/client");
-const monitoring_1 = require("@/middleware/monitoring");
-const errorHandler_1 = require("@/middleware/errorHandler");
+const monitoring_1 = require("../middleware/monitoring");
+const errorHandler_1 = require("../middleware/errorHandler");
 const router = (0, express_1.Router)();
 router.use(auth_1.authenticate);
 router.use((0, auth_1.authorize)(client_1.UserRole.ADMIN));

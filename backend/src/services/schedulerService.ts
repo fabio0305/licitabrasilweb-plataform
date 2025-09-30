@@ -1,15 +1,18 @@
 import cron from 'node-cron';
-import { prisma } from '@/config/database';
-import { logger } from '@/utils/logger';
+import { prisma } from '../config/database';
+import { logger } from '../utils/logger';
 import { BiddingStatus } from '@prisma/client';
 import NotificationService from './notificationService';
+import BackupService from './backupService';
 
 class SchedulerService {
   private static instance: SchedulerService;
   private notificationService: NotificationService;
+  private backupService: BackupService;
 
   private constructor() {
     this.notificationService = NotificationService.getInstance();
+    this.backupService = BackupService.getInstance();
   }
 
   public static getInstance(): SchedulerService {
@@ -50,6 +53,12 @@ class SchedulerService {
     // Relatório diário de estatísticas - executa diariamente às 8h
     cron.schedule('0 8 * * *', async () => {
       await this.sendDailyStats();
+    });
+
+    // Backup automático - executa diariamente às 2h (configurável via env)
+    const backupSchedule = process.env.BACKUP_SCHEDULE || '0 2 * * *';
+    cron.schedule(backupSchedule, async () => {
+      await this.performAutomaticBackup();
     });
 
     logger.info('✅ Tarefas agendadas iniciadas com sucesso');
@@ -277,6 +286,25 @@ Estatísticas de ${yesterday.toLocaleDateString('pt-BR')}:
       logger.info('Relatório diário enviado aos administradores');
     } catch (error) {
       logger.error('Erro ao enviar estatísticas diárias:', error);
+    }
+  }
+
+  private async performAutomaticBackup() {
+    try {
+      logger.info('Iniciando backup automático...');
+
+      const result = await this.backupService.createFullBackup({
+        includeDatabase: true,
+        includeUploads: true,
+      });
+
+      if (result.success) {
+        logger.info(`Backup automático concluído com sucesso em ${result.duration}ms`);
+      } else {
+        logger.error('Backup automático falhou');
+      }
+    } catch (error) {
+      logger.error('Erro no backup automático:', error);
     }
   }
 

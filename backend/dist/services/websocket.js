@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const socket_io_1 = require("socket.io");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const database_1 = require("@/config/database");
-const logger_1 = require("@/utils/logger");
+const database_1 = require("../config/database");
+const logger_1 = require("../utils/logger");
 const client_1 = require("@prisma/client");
 class WebSocketService {
     constructor(server) {

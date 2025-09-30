@@ -1,10 +1,14 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
-const database_1 = require("@/config/database");
-const errorHandler_1 = require("@/middleware/errorHandler");
-const logger_1 = require("@/utils/logger");
+const database_1 = require("../config/database");
+const errorHandler_1 = require("../middleware/errorHandler");
+const logger_1 = require("../utils/logger");
 const client_1 = require("@prisma/client");
+const emailService_1 = __importDefault(require("../services/emailService"));
 class UserController {
     async list(req, res) {
         const { page = 1, limit = 10, search, role, status } = req.query;
@@ -219,6 +223,10 @@ class UserController {
             oldStatus: user.status,
             newStatus: status,
         });
+        if (user.status !== client_1.UserStatus.ACTIVE && status === client_1.UserStatus.ACTIVE) {
+            const emailService = emailService_1.default.getInstance();
+            await emailService.sendWelcomeEmail(user.email, `${user.firstName} ${user.lastName}`, user.role);
+        }
         res.json({
             success: true,
             message: 'Status do usuário atualizado com sucesso',

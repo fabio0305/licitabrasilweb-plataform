@@ -1,13 +1,14 @@
 import { Request, Response } from 'express';
-import { prisma } from '@/config/database';
-import { 
-  ValidationError, 
-  NotFoundError, 
+import { prisma } from '../config/database';
+import {
+  ValidationError,
+  NotFoundError,
   ConflictError,
-  AuthorizationError 
-} from '@/middleware/errorHandler';
-import { logUserActivity, logDatabaseOperation } from '@/utils/logger';
+  AuthorizationError
+} from '../middleware/errorHandler';
+import { logUserActivity, logDatabaseOperation } from '../utils/logger';
 import { UserRole, UserStatus } from '@prisma/client';
+import EmailService from '../services/emailService';
 
 export class UserController {
   // Listar usuários (apenas admin)
@@ -244,11 +245,21 @@ export class UserController {
       },
     });
 
-    logUserActivity(adminUserId, 'USER_STATUS_UPDATED', { 
+    logUserActivity(adminUserId, 'USER_STATUS_UPDATED', {
       targetUserId: id,
       oldStatus: user.status,
       newStatus: status,
     });
+
+    // Enviar email de boas-vindas se o usuário foi ativado
+    if (user.status !== UserStatus.ACTIVE && status === UserStatus.ACTIVE) {
+      const emailService = EmailService.getInstance();
+      await emailService.sendWelcomeEmail(
+        user.email,
+        `${user.firstName} ${user.lastName}`,
+        user.role
+      );
+    }
 
     res.json({
       success: true,

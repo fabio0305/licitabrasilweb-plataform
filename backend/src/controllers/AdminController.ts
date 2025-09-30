@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import { prisma } from '@/config/database';
+import { prisma } from '../config/database';
 import { 
   ValidationError, 
   NotFoundError, 
   ConflictError 
-} from '@/middleware/errorHandler';
-import { logUserActivity, logDatabaseOperation } from '@/utils/logger';
+} from '../middleware/errorHandler';
+import { logUserActivity, logDatabaseOperation } from '../utils/logger';
 
 export class AdminController {
   // Obter configurações do sistema

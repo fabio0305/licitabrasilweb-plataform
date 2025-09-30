@@ -1,0 +1,18 @@
+[0;32m[2025-09-30 01:35:19] ✅ 🚀 Iniciando configuração de infraestrutura de produção - LicitaBrasil[0m
+[0;32m[2025-09-30 01:35:19] ✅ Criando estrutura de diretórios para produção...[0m
+[0;32m[2025-09-30 01:35:19] ✅ Estrutura de diretórios criada com sucesso[0m
+[0;32m[2025-09-30 01:35:19] ✅ Configurando PostgreSQL para produção...[0m
+[0;32m[2025-09-30 01:35:19] ✅ PostgreSQL configurado para produção[0m
+[0;32m[2025-09-30 01:35:19] ✅ Configurando Redis para produção...[0m
+[0;32m[2025-09-30 01:35:19] ✅ Redis configurado para produção[0m
+[0;32m[2025-09-30 01:35:19] ✅ Configurando certificados SSL/TLS...[0m
+[0;34m[2025-09-30 01:35:19] ℹ️  INFO: Gerando certificado SSL auto-assinado para testes...[0m
+[1;33m[2025-09-30 01:35:20] ⚠️  WARNING: Certificado auto-assinado criado. Para produção, use certificados válidos![0m
+[0;32m[2025-09-30 01:35:20] ✅ Configurando Nginx para produção...[0m
+[0;32m[2025-09-30 01:35:20] ✅ Nginx configurado para produção[0m
+[0;32m[2025-09-30 01:35:20] ✅ Configurando monitoramento para produção...[0m
+[0;32m[2025-09-30 01:35:20] ✅ Monitoramento configurado para produção[0m
+[0;32m[2025-09-30 01:35:20] ✅ Gerando secrets de produção...[0m
+[0;32m[2025-09-30 01:35:20] ✅ Secrets de produção gerados e salvos em ./security/production-secrets.env[0m
+[1;33m[2025-09-30 01:35:20] ⚠️  WARNING: IMPORTANTE: Mantenha o arquivo de secrets seguro e nunca o commite no Git![0m
+[0;32m[2025-09-30 01:35:20] ✅ 🎉 Infraestrutura de produção configurada com SUCESSO![0m

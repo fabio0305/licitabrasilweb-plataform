@@ -1,22 +1,23 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
-import { prisma } from '@/config/database';
-import { redisClient } from '@/config/redis';
+import { prisma } from '../config/database';
+import { redisClient } from '../config/redis';
 import { 
   generateToken, 
   generateRefreshToken, 
   verifyRefreshToken, 
   blacklistToken,
   JWTPayload 
-} from '@/middleware/auth';
+} from '../middleware/auth';
 import { 
   AuthenticationError, 
   ValidationError, 
   ConflictError,
   NotFoundError 
-} from '@/middleware/errorHandler';
-import { logAuth, logUserActivity } from '@/utils/logger';
+} from '../middleware/errorHandler';
+import { logAuth, logUserActivity } from '../utils/logger';
+import { UserStatus } from '@prisma/client';
 
 export class AuthController {
   // Registro de usuário
@@ -35,6 +36,12 @@ export class AuthController {
     // Hash da senha
     const hashedPassword = await bcrypt.hash(password, parseInt(process.env.BCRYPT_ROUNDS || '12'));
 
+    // Definir status inicial baseado no role
+    let initialStatus: UserStatus = UserStatus.PENDING;
+    if (role === 'CITIZEN') {
+      initialStatus = UserStatus.ACTIVE; // Cidadãos são ativados automaticamente
+    }
+
     // Criar usuário
     const user = await prisma.user.create({
       data: {
@@ -44,7 +51,7 @@ export class AuthController {
         lastName,
         phone,
         role,
-        status: 'PENDING', // Usuário precisa ser verificado
+        status: initialStatus,
       },
       select: {
         id: true,
@@ -60,9 +67,13 @@ export class AuthController {
     logAuth('Usuário registrado', user.id, req.ip);
     logUserActivity(user.id, 'USER_REGISTERED');
 
+    const message = role === 'CITIZEN'
+      ? 'Usuário registrado com sucesso.'
+      : 'Usuário registrado com sucesso. Aguarde aprovação.';
+
     res.status(201).json({
       success: true,
-      message: 'Usuário registrado com sucesso. Aguarde aprovação.',
+      message,
       data: { user },
     });
   }

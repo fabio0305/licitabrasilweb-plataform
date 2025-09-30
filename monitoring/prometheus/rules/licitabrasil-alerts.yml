@@ -1,0 +1,106 @@
+groups:
+  - name: licitabrasil_critical_alerts
+    rules:
+      # Sistema crítico
+      - alert: SystemDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Sistema {{ $labels.instance }} está fora do ar"
+          description: "O sistema {{ $labels.instance }} não está respondendo há mais de 1 minuto"
+
+      # Alto uso de CPU
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alto uso de CPU em {{ $labels.instance }}"
+          description: "CPU está acima de 85% há mais de 5 minutos: {{ $value }}%"
+
+      # Alto uso de memória
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Alto uso de memória em {{ $labels.instance }}"
+          description: "Memória está acima de 90% há mais de 5 minutos: {{ $value }}%"
+
+      # Pouco espaço em disco
+      - alert: LowDiskSpace
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Pouco espaço em disco em {{ $labels.instance }}"
+          description: "Espaço em disco abaixo de 10%: {{ $value }}%"
+
+  - name: licitabrasil_application_alerts
+    rules:
+      # Alto tempo de resposta da API
+      - alert: HighAPIResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="licitabrasil-backend"}[5m])) > 2
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alto tempo de resposta da API"
+          description: "95º percentil do tempo de resposta está acima de 2s: {{ $value }}s"
+
+      # Alta taxa de erro
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{job="licitabrasil-backend",status=~"5.."}[5m]) / rate(http_requests_total{job="licitabrasil-backend"}[5m]) * 100 > 5
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Alta taxa de erro na API"
+          description: "Taxa de erro 5xx acima de 5%: {{ $value }}%"
+
+      # Muitas conexões no banco
+      - alert: HighDatabaseConnections
+        expr: pg_stat_database_numbackends / pg_settings_max_connections * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Muitas conexões no banco de dados"
+          description: "Uso de conexões acima de 80%: {{ $value }}%"
+
+      # Redis com pouca memória
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alto uso de memória no Redis"
+          description: "Uso de memória do Redis acima de 85%: {{ $value }}%"
+
+  - name: licitabrasil_business_alerts
+    rules:
+      # Poucas licitações sendo criadas
+      - alert: LowBiddingCreationRate
+        expr: rate(licitabrasil_biddings_created_total[1h]) < 0.1
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Baixa taxa de criação de licitações"
+          description: "Menos de 0.1 licitações por segundo sendo criadas na última hora"
+
+      # Muitos logins falhando
+      - alert: HighLoginFailureRate
+        expr: rate(licitabrasil_login_failures_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alta taxa de falhas de login"
+          description: "Mais de 10 falhas de login por segundo: possível ataque"

@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { prisma } from '@/config/database';
-import { redisClient } from '@/config/redis';
-import { AuthenticationError, AuthorizationError } from '@/middleware/errorHandler';
-import { logAuth, logSecurity } from '@/utils/logger';
-import { UserRole } from '@prisma/client';
+import { prisma } from '../config/database';
+import { redisClient } from '../config/redis';
+import { AuthenticationError, AuthorizationError } from '../middleware/errorHandler';
+import { logAuth, logSecurity } from '../utils/logger';
+import { UserRole, Permission } from '@prisma/client';
 
 // Interface para o payload do JWT
 export interface JWTPayload {
@@ -146,17 +146,26 @@ export const requirePublicEntity = authorize(UserRole.PUBLIC_ENTITY);
 // Middleware para verificar se o usuário é auditor
 export const requireAuditor = authorize(UserRole.AUDITOR);
 
+// Middleware para verificar se o usuário é cidadão
+export const requireCitizen = authorize(UserRole.CITIZEN);
+
 // Middleware para verificar se o usuário pode acessar recursos de fornecedor
 export const requireSupplierAccess = authorize(UserRole.SUPPLIER, UserRole.ADMIN);
 
 // Middleware para verificar se o usuário pode acessar recursos de órgão público
 export const requirePublicEntityAccess = authorize(UserRole.PUBLIC_ENTITY, UserRole.ADMIN);
 
+// Middleware para verificar se o usuário pode acessar recursos de cidadão
+export const requireCitizenAccess = authorize(UserRole.CITIZEN, UserRole.ADMIN);
+
 // Middleware para verificar se o usuário pode acessar recursos administrativos
 export const requireAdminAccess = authorize(UserRole.ADMIN);
 
 // Middleware para verificar se o usuário pode acessar recursos de auditoria
 export const requireAuditAccess = authorize(UserRole.AUDITOR, UserRole.ADMIN);
+
+// Middleware para acesso público (qualquer usuário autenticado)
+export const requireAnyUser = authorize(UserRole.ADMIN, UserRole.SUPPLIER, UserRole.PUBLIC_ENTITY, UserRole.AUDITOR, UserRole.CITIZEN);
 
 // Middleware opcional de autenticação (não falha se não autenticado)
 export const optionalAuth = async (req: Request, res: Response, next: NextFunction) => {
@@ -250,4 +259,115 @@ export const verifyRefreshToken = (token: string): JWTPayload => {
 // Função para adicionar token à blacklist
 export const blacklistToken = async (token: string, expiresIn: number = 86400): Promise<void> => {
   await redisClient.set(`blacklist:${token}`, 'true', expiresIn);
+};
+
+// Middleware para verificação de permissões granulares
+export const requirePermission = (...requiredPermissions: Permission[]) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(new AuthenticationError('Usuário não autenticado'));
+    }
+
+    try {
+      // Buscar permissões do usuário
+      const userPermissions = await prisma.userPermission.findMany({
+        where: {
+          userId: req.user.userId,
+          isActive: true,
+          OR: [
+            { expiresAt: null },
+            { expiresAt: { gt: new Date() } }
+          ]
+        },
+        select: {
+          permission: true
+        }
+      });
+
+      const userPermissionList = userPermissions.map(p => p.permission);
+
+      // Verificar se o usuário tem todas as permissões necessárias
+      const hasAllPermissions = requiredPermissions.every(permission =>
+        userPermissionList.includes(permission)
+      );
+
+      if (!hasAllPermissions) {
+        logSecurity('Tentativa de acesso sem permissão necessária', {
+          userId: req.user.userId,
+          userRole: req.user.role,
+          requiredPermissions,
+          userPermissions: userPermissionList,
+          path: req.path,
+          method: req.method,
+          ip: req.ip,
+        });
+        return next(new AuthorizationError('Permissões insuficientes para este recurso'));
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+// Função para verificar se o usuário tem uma permissão específica
+export const hasPermission = async (userId: string, permission: Permission): Promise<boolean> => {
+  const userPermission = await prisma.userPermission.findFirst({
+    where: {
+      userId,
+      permission,
+      isActive: true,
+      OR: [
+        { expiresAt: null },
+        { expiresAt: { gt: new Date() } }
+      ]
+    }
+  });
+
+  return !!userPermission;
+};
+
+// Função para conceder permissão a um usuário
+export const grantPermission = async (
+  userId: string,
+  permission: Permission,
+  grantedBy?: string,
+  expiresAt?: Date
+): Promise<void> => {
+  await prisma.userPermission.upsert({
+    where: {
+      userId_permission: {
+        userId,
+        permission
+      }
+    },
+    update: {
+      isActive: true,
+      grantedBy,
+      expiresAt,
+      updatedAt: new Date()
+    },
+    create: {
+      userId,
+      permission,
+      grantedBy,
+      expiresAt,
+      isActive: true
+    }
+  });
+};
+
+// Função para revogar permissão de um usuário
+export const revokePermission = async (userId: string, permission: Permission): Promise<void> => {
+  await prisma.userPermission.updateMany({
+    where: {
+      userId,
+      permission
+    },
+    data: {
+      isActive: false,
+      updatedAt: new Date()
+    }
+  });
 };

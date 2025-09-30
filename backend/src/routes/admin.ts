@@ -1,13 +1,13 @@
 import { Router } from 'express';
-import { authenticate, requireAdminAccess } from '@/middleware/auth';
-import { validatePagination, validateUuidParam } from '@/middleware/validation';
-import { asyncHandler } from '@/middleware/errorHandler';
-import { AdminController } from '@/controllers/AdminController';
-import { UserController } from '@/controllers/UserController';
-import { SupplierController } from '@/controllers/SupplierController';
-import { PublicEntityController } from '@/controllers/PublicEntityController';
-import { BiddingController } from '@/controllers/BiddingController';
-import { ContractController } from '@/controllers/ContractController';
+import { authenticate, requireAdminAccess } from '../middleware/auth';
+import { validatePagination, validateUuidParam } from '../middleware/validation';
+import { asyncHandler } from '../middleware/errorHandler';
+import { AdminController } from '../controllers/AdminController';
+import { UserController } from '../controllers/UserController';
+import { SupplierController } from '../controllers/SupplierController';
+import { PublicEntityController } from '../controllers/PublicEntityController';
+import { BiddingController } from '../controllers/BiddingController';
+import { ContractController } from '../controllers/ContractController';
 
 const router = Router();
 const adminController = new AdminController();

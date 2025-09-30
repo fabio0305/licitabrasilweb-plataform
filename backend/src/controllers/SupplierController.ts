@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
-import { prisma } from '@/config/database';
+import { prisma } from '../config/database';
 import { 
   ValidationError, 
   NotFoundError, 
   ConflictError,
   AuthorizationError 
-} from '@/middleware/errorHandler';
-import { logUserActivity, logDatabaseOperation } from '@/utils/logger';
+} from '../middleware/errorHandler';
+import { logUserActivity, logDatabaseOperation } from '../utils/logger';
 import { UserRole } from '@prisma/client';
 
 export class SupplierController {

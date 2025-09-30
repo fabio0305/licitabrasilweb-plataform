@@ -3,9 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateDateRange = exports.validatePagination = exports.validateUuidParam = exports.validateCategory = exports.validateContract = exports.validateProposal = exports.validateBidding = exports.validatePublicEntity = exports.validateSupplier = exports.validateLogin = exports.validateUserRegistration = exports.categorySchema = exports.contractSchema = exports.proposalSchema = exports.biddingSchema = exports.publicEntitySchema = exports.supplierSchema = exports.loginSchema = exports.userRegistrationSchema = exports.dateRangeSchema = exports.paginationSchema = exports.zipCodeSchema = exports.phoneSchema = exports.cpfSchema = exports.cnpjSchema = exports.passwordSchema = exports.emailSchema = exports.uuidSchema = exports.validate = void 0;
+exports.validateCitizen = exports.citizenSchema = exports.validateDateRange = exports.validatePagination = exports.validateUuidParam = exports.validateCategory = exports.validateContract = exports.validateProposal = exports.validateBidding = exports.validatePublicEntity = exports.validateSupplier = exports.validateLogin = exports.validateUserRegistration = exports.categorySchema = exports.contractSchema = exports.proposalSchema = exports.biddingSchema = exports.publicEntitySchema = exports.supplierSchema = exports.loginSchema = exports.userRegistrationSchema = exports.dateRangeSchema = exports.paginationSchema = exports.zipCodeSchema = exports.phoneSchema = exports.cpfSchema = exports.cnpjSchema = exports.passwordSchema = exports.emailSchema = exports.uuidSchema = exports.validate = void 0;
 const joi_1 = __importDefault(require("joi"));
-const errorHandler_1 = require("@/middleware/errorHandler");
+const errorHandler_1 = require("../middleware/errorHandler");
 const validate = (schema) => {
     return (req, res, next) => {
         const errors = [];
@@ -192,5 +192,18 @@ exports.validatePagination = (0, exports.validate)({
 });
 exports.validateDateRange = (0, exports.validate)({
     query: exports.dateRangeSchema,
+});
+exports.citizenSchema = joi_1.default.object({
+    cpf: exports.cpfSchema.optional(),
+    dateOfBirth: joi_1.default.date().max('now').optional(),
+    profession: joi_1.default.string().min(2).max(100).optional(),
+    address: joi_1.default.string().min(5).max(500).optional(),
+    city: joi_1.default.string().min(2).max(100).optional(),
+    state: joi_1.default.string().length(2).optional(),
+    zipCode: exports.zipCodeSchema.optional(),
+    interests: joi_1.default.array().items(joi_1.default.string().min(1).max(100)).optional(),
+});
+exports.validateCitizen = (0, exports.validate)({
+    body: exports.citizenSchema,
 });
 //# sourceMappingURL=validation.js.map

@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { authenticate, requireSupplierAccess, requireAdminAccess } from '@/middleware/auth';
-import { validateSupplier, validatePagination, validateUuidParam } from '@/middleware/validation';
-import { asyncHandler } from '@/middleware/errorHandler';
-import { SupplierController } from '@/controllers/SupplierController';
+import { authenticate, requireSupplierAccess, requireAdminAccess } from '../middleware/auth';
+import { validateSupplier, validatePagination, validateUuidParam } from '../middleware/validation';
+import { asyncHandler } from '../middleware/errorHandler';
+import { SupplierController } from '../controllers/SupplierController';
 
 const router = Router();
 const supplierController = new SupplierController();

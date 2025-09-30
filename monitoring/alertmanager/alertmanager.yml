@@ -1,0 +1,19 @@
+# Alertmanager Configuration for Production - LicitaBrasil
+global:
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'alerts@licitabrasilweb.com.br'
+
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'web.hook'
+
+receivers:
+  - name: 'web.hook'
+    webhook_configs:
+      - url: 'http://backend/api/v1/webhooks/alerts'
+        send_resolved: true
+
+inhibit_rules: []

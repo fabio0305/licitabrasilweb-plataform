@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const auth_1 = require("@/middleware/auth");
-const validation_1 = require("@/middleware/validation");
-const errorHandler_1 = require("@/middleware/errorHandler");
-const BiddingController_1 = require("@/controllers/BiddingController");
+const auth_1 = require("../middleware/auth");
+const validation_1 = require("../middleware/validation");
+const errorHandler_1 = require("../middleware/errorHandler");
+const BiddingController_1 = require("../controllers/BiddingController");
 const router = (0, express_1.Router)();
 const biddingController = new BiddingController_1.BiddingController();
 router.get('/public', auth_1.optionalAuth, validation_1.validatePagination, (0, errorHandler_1.asyncHandler)(biddingController.listPublic));

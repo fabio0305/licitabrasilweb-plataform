@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { authenticate, requireAdminAccess } from '@/middleware/auth';
-import { validatePagination, validateUuidParam } from '@/middleware/validation';
-import { asyncHandler } from '@/middleware/errorHandler';
-import { UserController } from '@/controllers/UserController';
+import { authenticate, requireAdminAccess } from '../middleware/auth';
+import { validatePagination, validateUuidParam } from '../middleware/validation';
+import { asyncHandler } from '../middleware/errorHandler';
+import { UserController } from '../controllers/UserController';
 
 const router = Router();
 const userController = new UserController();

@@ -35,5 +35,7 @@ export declare const validateCategory: (req: Request, res: Response, next: NextF
 export declare const validateUuidParam: (req: Request, res: Response, next: NextFunction) => void;
 export declare const validatePagination: (req: Request, res: Response, next: NextFunction) => void;
 export declare const validateDateRange: (req: Request, res: Response, next: NextFunction) => void;
+export declare const citizenSchema: Joi.ObjectSchema<any>;
+export declare const validateCitizen: (req: Request, res: Response, next: NextFunction) => void;
 export {};
 //# sourceMappingURL=validation.d.ts.map

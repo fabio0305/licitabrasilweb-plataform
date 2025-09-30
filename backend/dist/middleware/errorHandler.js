@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleUncaughtErrors = exports.asyncHandler = exports.errorHandler = exports.ExternalServiceError = exports.DatabaseError = exports.ConflictError = exports.NotFoundError = exports.AuthorizationError = exports.AuthenticationError = exports.ValidationError = exports.AppError = void 0;
-const logger_1 = require("@/utils/logger");
+const logger_1 = require("../utils/logger");
 class AppError extends Error {
     constructor(message, statusCode = 500, code = 'INTERNAL_ERROR', details) {
         super(message);
