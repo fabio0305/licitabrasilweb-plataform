@@ -4,6 +4,7 @@ export enum UserRole {
   SUPPLIER = 'SUPPLIER',
   PUBLIC_ENTITY = 'PUBLIC_ENTITY',
   AUDITOR = 'AUDITOR',
+  CITIZEN = 'CITIZEN',
 }
 
 export enum UserStatus {

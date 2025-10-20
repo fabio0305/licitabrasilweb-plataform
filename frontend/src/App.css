@@ -13,19 +13,20 @@
   }
 }
 
+/* ESTILOS COM CORES OFICIAIS LICITABRASIL */
 .App-header {
-  background-color: #282c34;
+  background-color: var(--color-primary); /* Verde escuro oficial #2C3F32 */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: var(--color-text-on-primary); /* Texto branco sobre verde */
 }
 
 .App-link {
-  color: #61dafb;
+  color: var(--color-secondary); /* Amarelo oficial #F7D52A */
 }
 
 @keyframes App-logo-spin {

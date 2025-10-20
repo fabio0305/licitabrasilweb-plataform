@@ -1,3 +1,25 @@
+/* CORES OFICIAIS LICITABRASIL WEB PLATFORM */
+/* IMPORTANTE: Estas são as cores oficiais da plataforma - NÃO ALTERAR sem aprovação */
+:root {
+  /* CORES PRIMÁRIAS - Verde Escuro */
+  --color-primary: #2C3F32;           /* COR OFICIAL PRIMÁRIA */
+  --color-primary-light: #4A6B50;     /* Verde mais claro */
+  --color-primary-dark: #1A2A1F;      /* Verde mais escuro */
+
+  /* CORES SECUNDÁRIAS - Amarelo */
+  --color-secondary: #F7D52A;         /* COR OFICIAL SECUNDÁRIA */
+  --color-secondary-light: #F9E055;   /* Amarelo mais claro */
+  --color-secondary-dark: #D5B800;    /* Amarelo mais escuro */
+
+  /* CORES DE FUNDO E TEXTO */
+  --color-background: #f5f5f5;        /* Fundo padrão */
+  --color-paper: #ffffff;             /* Fundo de cards/papel */
+  --color-text-primary: #2C3F32;      /* Texto principal (verde) */
+  --color-text-secondary: #666666;    /* Texto secundário (cinza) */
+  --color-text-on-primary: #FFFFFF;   /* Texto sobre fundo verde */
+  --color-text-on-secondary: #2C3F32; /* Texto sobre fundo amarelo */
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -5,6 +27,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
 }
 
 code {

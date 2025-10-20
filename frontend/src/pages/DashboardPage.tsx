@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Box,
   Container,
@@ -84,12 +84,28 @@ const DashboardPage: React.FC = () => {
         return 'Órgão Público';
       case UserRole.AUDITOR:
         return 'Auditor';
+      case UserRole.CITIZEN:
+        return 'Cidadão';
       default:
         return role;
     }
   };
 
+  // Redirecionar usuários para dashboards específicas
+  useEffect(() => {
+    if (user && user.role === UserRole.CITIZEN) {
+      navigate('/citizen-dashboard', { replace: true });
+    } else if (user && user.role === UserRole.SUPPLIER) {
+      navigate('/supplier-dashboard', { replace: true });
+    }
+  }, [user, navigate]);
+
   if (!user) {
+    return null;
+  }
+
+  // Se for CITIZEN ou SUPPLIER, não renderizar nada enquanto redireciona
+  if (user.role === UserRole.CITIZEN || user.role === UserRole.SUPPLIER) {
     return null;
   }
 
@@ -182,37 +198,6 @@ const DashboardPage: React.FC = () => {
           </Grid>
 
           {/* Role-specific Cards */}
-          {user.role === UserRole.SUPPLIER && (
-            <>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <Card>
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <Gavel sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                    <Typography variant="h6" gutterBottom>
-                      Licitações Disponíveis
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Visualize e participe de licitações abertas
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-
-              <Grid size={{ xs: 12, md: 4 }}>
-                <Card>
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <Assignment sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                    <Typography variant="h6" gutterBottom>
-                      Minhas Propostas
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Acompanhe suas propostas enviadas e resultados
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </>
-          )}
 
           {user.role === UserRole.PUBLIC_ENTITY && (
             <>

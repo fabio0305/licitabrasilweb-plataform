@@ -73,7 +73,7 @@ const LoginPage: React.FC = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+        background: 'linear-gradient(135deg, #2C3F32 0%, #4A6B50 100%)', // Cores oficiais LicitaBrasil
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

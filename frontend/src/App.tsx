@@ -7,22 +7,27 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import CitizenDashboardPage from './pages/CitizenDashboardPage';
+import SupplierDashboardPage from './pages/SupplierDashboardPage';
 import BiddingsPage from './pages/BiddingsPage';
 import BiddingDetailPage from './pages/BiddingDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Tema customizado inspirado no licitar.digital
+// Tema customizado LicitaBrasil - Cores Oficiais da Plataforma
+// CORES OFICIAIS: Primária #2C3F32 (Verde Escuro) | Secundária #F7D52A (Amarelo)
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2', // Azul principal
-      light: '#42a5f5',
-      dark: '#1565c0',
+      main: '#2C3F32', // Verde escuro principal - COR OFICIAL LICITABRASIL
+      light: '#4A6B50', // Verde mais claro (calculado)
+      dark: '#1A2A1F', // Verde mais escuro (calculado)
+      contrastText: '#FFFFFF', // Texto branco para contraste
     },
     secondary: {
-      main: '#f57c00', // Laranja secundário
-      light: '#ffb74d',
-      dark: '#e65100',
+      main: '#F7D52A', // Amarelo secundário - COR OFICIAL LICITABRASIL
+      light: '#F9E055', // Amarelo mais claro (calculado)
+      dark: '#D5B800', // Amarelo mais escuro (calculado)
+      contrastText: '#2C3F32', // Texto verde escuro para contraste
     },
     background: {
       default: '#f5f5f5',
@@ -78,6 +83,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/citizen-dashboard"
+              element={
+                <ProtectedRoute>
+                  <CitizenDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/supplier-dashboard"
+              element={
+                <ProtectedRoute>
+                  <SupplierDashboardPage />
                 </ProtectedRoute>
               }
             />

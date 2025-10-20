@@ -53,7 +53,7 @@ const schema: yup.ObjectSchema<RegisterForm> = yup.object({
     .optional(),
   role: yup
     .mixed<UserRole>()
-    .oneOf([UserRole.SUPPLIER, UserRole.PUBLIC_ENTITY], 'Tipo de usuário inválido')
+    .oneOf([UserRole.SUPPLIER, UserRole.PUBLIC_ENTITY, UserRole.CITIZEN], 'Tipo de usuário inválido')
     .required('Tipo de usuário é obrigatório'),
   password: yup
     .string()
@@ -118,6 +118,8 @@ const RegisterPage: React.FC = () => {
         return <Business />;
       case UserRole.PUBLIC_ENTITY:
         return <AccountBalance />;
+      case UserRole.CITIZEN:
+        return <Person />;
       default:
         return <Person />;
     }
@@ -129,7 +131,7 @@ const RegisterPage: React.FC = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+        background: 'linear-gradient(135deg, #2C3F32 0%, #4A6B50 100%)', // Cores oficiais LicitaBrasil
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -265,6 +267,12 @@ const RegisterPage: React.FC = () => {
                       </InputAdornment>
                     }
                   >
+                    <MenuItem value={UserRole.CITIZEN}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Person />
+                        Cidadão
+                      </Box>
+                    </MenuItem>
                     <MenuItem value={UserRole.SUPPLIER}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Business />
