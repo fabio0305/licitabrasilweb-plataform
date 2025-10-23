@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import Joi from 'joi';
 import { ValidationError } from '../middleware/errorHandler';
+import { logger } from '../utils/logger';
 
 // Interface para opções de validação
 interface ValidationOptions {
@@ -91,9 +92,10 @@ export const cpfSchema = Joi.string()
 
 // Schema para telefone
 export const phoneSchema = Joi.string()
-  .pattern(/^\(\d{2}\)\s\d{4,5}-\d{4}$/)
+  .pattern(/^\(\d{2}\)\s\d{1}\s\d{4}-\d{4}$/)
+  .required()
   .messages({
-    'string.pattern.base': 'Telefone deve estar no formato (XX) XXXXX-XXXX',
+    'string.pattern.base': 'Telefone deve estar no formato (XX) 9 XXXX-XXXX',
   });
 
 // Schema para CEP
@@ -112,6 +114,17 @@ export const paginationSchema = Joi.object({
   sortOrder: Joi.string().valid('asc', 'desc').default('desc'),
 });
 
+// Schema para listagem de usuários com filtros
+export const userListSchema = Joi.object({
+  page: Joi.number().integer().min(1).default(1),
+  limit: Joi.number().integer().min(1).max(100).default(10),
+  sortBy: Joi.string().optional(),
+  sortOrder: Joi.string().valid('asc', 'desc').default('desc'),
+  search: Joi.string().optional(),
+  role: Joi.string().valid('ADMIN', 'SUPPLIER', 'PUBLIC_ENTITY', 'AUDITOR', 'CITIZEN').optional(),
+  status: Joi.string().valid('ACTIVE', 'PENDING', 'INACTIVE', 'SUSPENDED').optional(),
+});
+
 // Schema para filtros de data
 export const dateRangeSchema = Joi.object({
   startDate: Joi.date().iso().optional(),
@@ -126,9 +139,9 @@ export const userRegistrationSchema = Joi.object({
   password: passwordSchema,
   firstName: Joi.string().min(2).max(50).required(),
   lastName: Joi.string().min(2).max(50).required(),
-  phone: phoneSchema.optional(),
-  role: Joi.string().valid('SUPPLIER', 'PUBLIC_ENTITY').required(),
-});
+  phone: phoneSchema.required(),
+  role: Joi.string().valid('SUPPLIER', 'PUBLIC_ENTITY', 'CITIZEN', 'AUDITOR').required(),
+}).unknown(true); // Permite campos extras como confirmPassword
 
 // Schema para login
 export const loginSchema = Joi.object({
@@ -147,8 +160,10 @@ export const supplierSchema = Joi.object({
   city: Joi.string().min(2).max(100).required(),
   state: Joi.string().length(2).required(),
   zipCode: zipCodeSchema,
+  phone: phoneSchema.required(),
   website: Joi.string().uri().optional(),
   description: Joi.string().max(1000).optional(),
+  categories: Joi.array().items(Joi.string().min(1).max(100)).min(1).required(),
 });
 
 // Schema para órgão público
@@ -156,12 +171,16 @@ export const publicEntitySchema = Joi.object({
   name: Joi.string().min(2).max(200).required(),
   cnpj: cnpjSchema,
   entityType: Joi.string().valid('Municipal', 'Estadual', 'Federal').required(),
+  sphere: Joi.string().valid('Executivo', 'Legislativo', 'Judiciário').required(),
   address: Joi.string().min(5).max(500).required(),
   city: Joi.string().min(2).max(100).required(),
   state: Joi.string().length(2).required(),
   zipCode: zipCodeSchema,
   phone: phoneSchema.required(),
   website: Joi.string().uri().optional(),
+  legalRepresentativeName: Joi.string().min(2).max(100).required(),
+  legalRepresentativeCpf: cpfSchema.required(),
+  legalRepresentativePosition: Joi.string().min(2).max(100).required(),
 });
 
 // Schema para licitação
@@ -264,22 +283,40 @@ export const validatePagination = validate({
   query: paginationSchema,
 });
 
+export const validateUserList = validate({
+  query: userListSchema,
+});
+
 export const validateDateRange = validate({
   query: dateRangeSchema,
 });
 
 // Schema para cidadão
 export const citizenSchema = Joi.object({
-  cpf: cpfSchema.optional(),
-  dateOfBirth: Joi.date().max('now').optional(),
+  cpf: cpfSchema.required(),
+  dateOfBirth: Joi.date().max('now').required(),
   profession: Joi.string().min(2).max(100).optional(),
   address: Joi.string().min(5).max(500).optional(),
   city: Joi.string().min(2).max(100).optional(),
   state: Joi.string().length(2).optional(),
   zipCode: zipCodeSchema.optional(),
-  interests: Joi.array().items(Joi.string().min(1).max(100)).optional(),
+  interests: Joi.array().items(Joi.string().min(1).max(100)).min(1).required(),
 });
 
 export const validateCitizen = validate({
   body: citizenSchema,
+});
+
+// Schema para auditor (atualização do perfil do usuário)
+export const auditorProfileSchema = Joi.object({
+  cpf: cpfSchema.required(),
+  institution: Joi.string().min(2).max(200).required(),
+  professionalRegistry: Joi.string().min(3).max(50).required(),
+  specialization: Joi.string().min(2).max(100).required(),
+  professionalPhone: phoneSchema.required(),
+  profileCompleted: Joi.boolean().optional(),
+});
+
+export const validateAuditorProfile = validate({
+  body: auditorProfileSchema,
 });

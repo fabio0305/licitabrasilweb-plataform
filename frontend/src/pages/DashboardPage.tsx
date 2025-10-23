@@ -16,10 +16,7 @@ import {
 } from '@mui/material';
 import {
   AccountCircle,
-  Business,
   AccountBalance,
-  Gavel,
-  Assignment,
   TrendingUp,
   Notifications,
 } from '@mui/icons-material';
@@ -97,6 +94,13 @@ const DashboardPage: React.FC = () => {
       navigate('/citizen-dashboard', { replace: true });
     } else if (user && user.role === UserRole.SUPPLIER) {
       navigate('/supplier-dashboard', { replace: true });
+    } else if (user && user.role === UserRole.PUBLIC_ENTITY) {
+      navigate('/public-entity-dashboard', { replace: true });
+    } else if (user && user.role === UserRole.ADMIN) {
+      navigate('/admin/dashboard', { replace: true });
+    } else if (user && user.role === UserRole.AUDITOR) {
+      // Para auditores, redirecionar para a página de licitações por enquanto
+      navigate('/biddings', { replace: true });
     }
   }, [user, navigate]);
 
@@ -104,8 +108,8 @@ const DashboardPage: React.FC = () => {
     return null;
   }
 
-  // Se for CITIZEN ou SUPPLIER, não renderizar nada enquanto redireciona
-  if (user.role === UserRole.CITIZEN || user.role === UserRole.SUPPLIER) {
+  // Se for CITIZEN, SUPPLIER, PUBLIC_ENTITY, ADMIN ou AUDITOR, não renderizar nada enquanto redireciona
+  if (user.role === UserRole.CITIZEN || user.role === UserRole.SUPPLIER || user.role === UserRole.PUBLIC_ENTITY || user.role === UserRole.ADMIN || user.role === UserRole.AUDITOR) {
     return null;
   }
 
@@ -199,38 +203,9 @@ const DashboardPage: React.FC = () => {
 
           {/* Role-specific Cards */}
 
-          {user.role === UserRole.PUBLIC_ENTITY && (
-            <>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <Card>
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <Business sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                    <Typography variant="h6" gutterBottom>
-                      Minhas Licitações
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Gerencie suas licitações criadas e em andamento
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
 
-              <Grid size={{ xs: 12, md: 4 }}>
-                <Card>
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <Assignment sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                    <Typography variant="h6" gutterBottom>
-                      Contratos
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Visualize e gerencie seus contratos ativos
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </>
-          )}
 
+          {/* @ts-ignore */}
           {user.role === UserRole.ADMIN && (
             <>
               <Grid size={{ xs: 12, md: 4 }}>

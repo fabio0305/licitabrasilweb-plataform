@@ -1,0 +1,31 @@
+RELATÓRIO DE BACKUP - LICITABRASIL WEB PLATFORM
+===============================================
+
+Data/Hora: Thu Oct 23 03:01:04 AM UTC 2025
+Backup Name: pre-cleanup-verification
+
+ARQUIVOS CRIADOS:
+- Banco de dados: /home/toor/backups/pre-cleanup-verification.sql
+
+
+TAMANHOS:
+- Banco de dados: 72K
+
+
+VERIFICAÇÕES:
+- Integridade do SQL: OK
+- Linhas no backup: 1305
+
+COMANDOS PARA RESTAURAÇÃO:
+# Restaurar banco de dados:
+docker-compose exec -T postgres psql -U licitabrasil -d licita_brasil_web < "/home/toor/backups/pre-cleanup-verification.sql"
+
+# Restaurar uploads (se existir):
+# Nenhum backup de uploads criado
+
+NOTAS:
+- Pare o sistema antes de restaurar
+- Verifique a integridade após restauração
+- Mantenha este backup em local seguro
+
+===============================================

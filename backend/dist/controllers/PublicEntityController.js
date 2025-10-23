@@ -144,7 +144,7 @@ class PublicEntityController {
     }
     async create(req, res) {
         const userId = req.user.userId;
-        const { name, cnpj, entityType, address, city, state, zipCode, phone, website, } = req.body;
+        const { name, cnpj, entityType, sphere, address, city, state, zipCode, phone, website, legalRepresentativeName, legalRepresentativeCpf, legalRepresentativePosition, } = req.body;
         const existingPublicEntity = await database_1.prisma.publicEntity.findUnique({
             where: { userId },
         });
@@ -163,12 +163,16 @@ class PublicEntityController {
                 name,
                 cnpj,
                 entityType,
+                sphere,
                 address,
                 city,
                 state,
                 zipCode,
                 phone,
                 website,
+                legalRepresentativeName,
+                legalRepresentativeCpf,
+                legalRepresentativePosition,
             },
             include: {
                 user: {

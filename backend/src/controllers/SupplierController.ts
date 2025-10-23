@@ -204,8 +204,10 @@ export class SupplierController {
       city,
       state,
       zipCode,
+      phone,
       website,
       description,
+      categories,
     } = req.body;
 
     // Verificar se o usuário já tem um perfil de fornecedor
@@ -224,6 +226,14 @@ export class SupplierController {
 
     if (existingCnpj) {
       throw new ConflictError('CNPJ já está em uso por outro fornecedor');
+    }
+
+    // Atualizar telefone do usuário se fornecido
+    if (phone) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { phone },
+      });
     }
 
     const supplier = await prisma.supplier.create({
@@ -248,11 +258,49 @@ export class SupplierController {
             email: true,
             firstName: true,
             lastName: true,
+            phone: true,
             status: true,
           },
         },
       },
     });
+
+    // Processar categorias se fornecidas
+    if (categories && categories.length > 0) {
+      // Buscar ou criar categorias
+      const categoryRecords = await Promise.all(
+        categories.map(async (categoryName: string) => {
+          let category = await prisma.category.findFirst({
+            where: { name: categoryName },
+          });
+
+          if (!category) {
+            // Criar categoria se não existir
+            category = await prisma.category.create({
+              data: {
+                name: categoryName,
+                code: categoryName.toUpperCase().replace(/\s+/g, '_'),
+                isActive: true,
+              },
+            });
+          }
+
+          return category;
+        })
+      );
+
+      // Associar categorias ao fornecedor
+      await Promise.all(
+        categoryRecords.map((category) =>
+          prisma.supplierCategory.create({
+            data: {
+              supplierId: supplier.id,
+              categoryId: category.id,
+            },
+          })
+        )
+      );
+    }
 
     logUserActivity(userId, 'SUPPLIER_PROFILE_CREATED', { supplierId: supplier.id });
 

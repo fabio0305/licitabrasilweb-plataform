@@ -31,6 +31,7 @@ import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import InputMask from 'react-input-mask';
 import { useAuth } from '../contexts/AuthContext';
 import { RegisterForm, UserRole } from '../types';
 
@@ -49,11 +50,11 @@ const schema: yup.ObjectSchema<RegisterForm> = yup.object({
     .required('Email é obrigatório'),
   phone: yup
     .string()
-    .matches(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, 'Telefone deve estar no formato (XX) XXXXX-XXXX')
-    .optional(),
+    .matches(/^\(\d{2}\)\s\d{1}\s\d{4}-\d{4}$/, 'Telefone deve estar no formato (XX) 9 XXXX-XXXX')
+    .required('Telefone é obrigatório'),
   role: yup
     .mixed<UserRole>()
-    .oneOf([UserRole.SUPPLIER, UserRole.PUBLIC_ENTITY, UserRole.CITIZEN], 'Tipo de usuário inválido')
+    .oneOf([UserRole.SUPPLIER, UserRole.PUBLIC_ENTITY, UserRole.CITIZEN, UserRole.AUDITOR], 'Tipo de usuário inválido')
     .required('Tipo de usuário é obrigatório'),
   password: yup
     .string()
@@ -101,10 +102,25 @@ const RegisterPage: React.FC = () => {
       setSuccess(null);
       setIsLoading(true);
       await register(data);
-      setSuccess('Cadastro realizado com sucesso! Aguarde aprovação para acessar a plataforma.');
+      setSuccess('Cadastro realizado com sucesso! Redirecionando para configuração do perfil...');
+
+      // Redirecionar para a página de setup correspondente ao perfil
+      const setupRoutes = {
+        SUPPLIER: '/profile-setup/supplier',
+        PUBLIC_ENTITY: '/profile-setup/public-entity',
+        CITIZEN: '/profile-setup/citizen',
+        AUDITOR: '/profile-setup/auditor',
+      };
+
+      const setupRoute = setupRoutes[data.role as keyof typeof setupRoutes];
+
       setTimeout(() => {
-        navigate('/login');
-      }, 3000);
+        if (setupRoute) {
+          navigate(setupRoute);
+        } else {
+          navigate('/dashboard');
+        }
+      }, 2000);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -119,6 +135,8 @@ const RegisterPage: React.FC = () => {
       case UserRole.PUBLIC_ENTITY:
         return <AccountBalance />;
       case UserRole.CITIZEN:
+        return <Person />;
+      case UserRole.AUDITOR:
         return <Person />;
       default:
         return <Person />;
@@ -233,22 +251,31 @@ const RegisterPage: React.FC = () => {
               name="phone"
               control={control}
               render={({ field }) => (
-                <TextField
-                  {...field}
-                  fullWidth
-                  label="Telefone (opcional)"
-                  placeholder="(11) 99999-9999"
-                  margin="normal"
-                  error={!!errors.phone}
-                  helperText={errors.phone?.message}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Phone color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                <InputMask
+                  mask="(99) 9 9999-9999"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                >
+                  {(inputProps: any) => (
+                    <TextField
+                      {...inputProps}
+                      fullWidth
+                      label="Telefone"
+                      placeholder="(XX) 9 XXXX-XXXX"
+                      margin="normal"
+                      error={!!errors.phone}
+                      helperText={errors.phone?.message}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Phone color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  )}
+                </InputMask>
               )}
             />
 
@@ -283,6 +310,12 @@ const RegisterPage: React.FC = () => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <AccountBalance />
                         Órgão Público
+                      </Box>
+                    </MenuItem>
+                    <MenuItem value={UserRole.AUDITOR}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Person />
+                        Auditor
                       </Box>
                     </MenuItem>
                   </Select>

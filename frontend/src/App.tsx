@@ -9,9 +9,22 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import CitizenDashboardPage from './pages/CitizenDashboardPage';
 import SupplierDashboardPage from './pages/SupplierDashboardPage';
+import PublicEntityDashboardPage from './pages/PublicEntityDashboardPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import AdminUsersPage from './pages/AdminUsersPage';
+import AdminBiddingsPage from './pages/AdminBiddingsPage';
+import AdminReportsPage from './pages/AdminReportsPage';
+import AdminSettingsPage from './pages/AdminSettingsPage';
+import AdminAuditLogsPage from './pages/AdminAuditLogsPage';
+import UnauthorizedPage from './pages/UnauthorizedPage';
 import BiddingsPage from './pages/BiddingsPage';
 import BiddingDetailPage from './pages/BiddingDetailPage';
+import SupplierProfileSetupPage from './pages/SupplierProfileSetupPage';
+import PublicEntityProfileSetupPage from './pages/PublicEntityProfileSetupPage';
+import CitizenProfileSetupPage from './pages/CitizenProfileSetupPage';
+import AuditorProfileSetupPage from './pages/AuditorProfileSetupPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import { UserRole } from './types';
 
 // Tema customizado LicitaBrasil - Cores Oficiais da Plataforma
 // CORES OFICIAIS: Primária #2C3F32 (Verde Escuro) | Secundária #F7D52A (Amarelo)
@@ -76,8 +89,41 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/unauthorized" element={<UnauthorizedPage />} />
             <Route path="/biddings" element={<BiddingsPage />} />
             <Route path="/biddings/:id" element={<BiddingDetailPage />} />
+            <Route
+              path="/profile-setup/supplier"
+              element={
+                <ProtectedRoute requiredRoles={[UserRole.SUPPLIER]}>
+                  <SupplierProfileSetupPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile-setup/public-entity"
+              element={
+                <ProtectedRoute requiredRoles={[UserRole.PUBLIC_ENTITY]}>
+                  <PublicEntityProfileSetupPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile-setup/citizen"
+              element={
+                <ProtectedRoute requiredRoles={[UserRole.CITIZEN]}>
+                  <CitizenProfileSetupPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile-setup/auditor"
+              element={
+                <ProtectedRoute requiredRoles={[UserRole.AUDITOR]}>
+                  <AuditorProfileSetupPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/dashboard"
               element={
@@ -99,6 +145,62 @@ function App() {
               element={
                 <ProtectedRoute>
                   <SupplierDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/public-entity-dashboard"
+              element={
+                <ProtectedRoute>
+                  <PublicEntityDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute requiredRoles={[UserRole.ADMIN]}>
+                  <AdminDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute requiredRoles={[UserRole.ADMIN]}>
+                  <AdminUsersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/biddings"
+              element={
+                <ProtectedRoute requiredRoles={[UserRole.ADMIN]}>
+                  <AdminBiddingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/reports"
+              element={
+                <ProtectedRoute requiredRoles={[UserRole.ADMIN]}>
+                  <AdminReportsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/settings"
+              element={
+                <ProtectedRoute requiredRoles={[UserRole.ADMIN]}>
+                  <AdminSettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/audit-logs"
+              element={
+                <ProtectedRoute requiredRoles={[UserRole.ADMIN]}>
+                  <AdminAuditLogsPage />
                 </ProtectedRoute>
               }
             />

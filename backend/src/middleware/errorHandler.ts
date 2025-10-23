@@ -7,6 +7,8 @@ export interface CustomError extends Error {
   code?: string;
   details?: any;
   isOperational?: boolean;
+  path?: string;
+  method?: string;
 }
 
 // Classe para erros da aplicação
@@ -92,6 +94,9 @@ const formatErrorResponse = (error: CustomError, includeStack: boolean = false) 
       code: error.code || 'INTERNAL_ERROR',
       timestamp: new Date().toISOString(),
     },
+    timestamp: new Date().toISOString(),
+    path: error.path || 'unknown',
+    method: error.method || 'unknown',
   };
 
   if (error.details) {
@@ -195,6 +200,8 @@ export const errorHandler = (
 
   // Incluir stack trace apenas em desenvolvimento
   const includeStack = process.env.NODE_ENV === 'development';
+  customError.path = req.path;
+  customError.method = req.method;
   const errorResponse = formatErrorResponse(customError, includeStack);
 
   // Log adicional para erros não operacionais

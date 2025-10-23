@@ -4,6 +4,8 @@ export interface CustomError extends Error {
     code?: string;
     details?: any;
     isOperational?: boolean;
+    path?: string;
+    method?: string;
 }
 export declare class AppError extends Error implements CustomError {
     statusCode: number;

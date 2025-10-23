@@ -92,8 +92,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (userData: RegisterForm) => {
     try {
       setIsLoading(true);
-      const response = await apiCall.post('/auth/register', userData);
-      
+
+      // Remover confirmPassword antes de enviar para o backend
+      const { confirmPassword, ...dataToSend } = userData;
+
+      const response = await apiCall.post('/auth/register', dataToSend);
+
       if (!response.success) {
         throw new Error(response.error?.message || 'Erro ao registrar usuário');
       }

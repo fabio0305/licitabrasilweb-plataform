@@ -9,6 +9,7 @@
     "start": "node dist/server.js",
     "test": "jest",
     "test:watch": "jest --watch",
+    "create-admin": "ts-node -r tsconfig-paths/register scripts/create-admin.ts",
     "test:coverage": "jest --coverage",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",

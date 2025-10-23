@@ -69,6 +69,9 @@ const formatErrorResponse = (error, includeStack = false) => {
             code: error.code || 'INTERNAL_ERROR',
             timestamp: new Date().toISOString(),
         },
+        timestamp: new Date().toISOString(),
+        path: error.path || 'unknown',
+        method: error.method || 'unknown',
     };
     if (error.details) {
         response.error.details = error.details;
@@ -146,6 +149,8 @@ const errorHandler = (error, req, res, next) => {
         code,
     };
     const includeStack = process.env.NODE_ENV === 'development';
+    customError.path = req.path;
+    customError.method = req.method;
     const errorResponse = formatErrorResponse(customError, includeStack);
     if (!isOperationalError(error)) {
         logger_1.logger.error('Erro não operacional detectado:', {

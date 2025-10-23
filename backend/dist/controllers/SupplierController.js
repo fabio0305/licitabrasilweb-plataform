@@ -170,7 +170,7 @@ class SupplierController {
     }
     async create(req, res) {
         const userId = req.user.userId;
-        const { companyName, tradeName, cnpj, stateRegistration, municipalRegistration, address, city, state, zipCode, website, description, } = req.body;
+        const { companyName, tradeName, cnpj, stateRegistration, municipalRegistration, address, city, state, zipCode, phone, website, description, categories, } = req.body;
         const existingSupplier = await database_1.prisma.supplier.findUnique({
             where: { userId },
         });
@@ -182,6 +182,12 @@ class SupplierController {
         });
         if (existingCnpj) {
             throw new errorHandler_1.ConflictError('CNPJ já está em uso por outro fornecedor');
+        }
+        if (phone) {
+            await database_1.prisma.user.update({
+                where: { id: userId },
+                data: { phone },
+            });
         }
         const supplier = await database_1.prisma.supplier.create({
             data: {
@@ -205,11 +211,35 @@ class SupplierController {
                         email: true,
                         firstName: true,
                         lastName: true,
+                        phone: true,
                         status: true,
                     },
                 },
             },
         });
+        if (categories && categories.length > 0) {
+            const categoryRecords = await Promise.all(categories.map(async (categoryName) => {
+                let category = await database_1.prisma.category.findFirst({
+                    where: { name: categoryName },
+                });
+                if (!category) {
+                    category = await database_1.prisma.category.create({
+                        data: {
+                            name: categoryName,
+                            code: categoryName.toUpperCase().replace(/\s+/g, '_'),
+                            isActive: true,
+                        },
+                    });
+                }
+                return category;
+            }));
+            await Promise.all(categoryRecords.map((category) => database_1.prisma.supplierCategory.create({
+                data: {
+                    supplierId: supplier.id,
+                    categoryId: category.id,
+                },
+            })));
+        }
         (0, logger_1.logUserActivity)(userId, 'SUPPLIER_PROFILE_CREATED', { supplierId: supplier.id });
         res.status(201).json({
             success: true,

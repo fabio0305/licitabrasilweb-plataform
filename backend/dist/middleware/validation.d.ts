@@ -15,6 +15,7 @@ export declare const cpfSchema: Joi.StringSchema<string>;
 export declare const phoneSchema: Joi.StringSchema<string>;
 export declare const zipCodeSchema: Joi.StringSchema<string>;
 export declare const paginationSchema: Joi.ObjectSchema<any>;
+export declare const userListSchema: Joi.ObjectSchema<any>;
 export declare const dateRangeSchema: Joi.ObjectSchema<any>;
 export declare const userRegistrationSchema: Joi.ObjectSchema<any>;
 export declare const loginSchema: Joi.ObjectSchema<any>;
@@ -34,8 +35,11 @@ export declare const validateContract: (req: Request, res: Response, next: NextF
 export declare const validateCategory: (req: Request, res: Response, next: NextFunction) => void;
 export declare const validateUuidParam: (req: Request, res: Response, next: NextFunction) => void;
 export declare const validatePagination: (req: Request, res: Response, next: NextFunction) => void;
+export declare const validateUserList: (req: Request, res: Response, next: NextFunction) => void;
 export declare const validateDateRange: (req: Request, res: Response, next: NextFunction) => void;
 export declare const citizenSchema: Joi.ObjectSchema<any>;
 export declare const validateCitizen: (req: Request, res: Response, next: NextFunction) => void;
+export declare const auditorProfileSchema: Joi.ObjectSchema<any>;
+export declare const validateAuditorProfile: (req: Request, res: Response, next: NextFunction) => void;
 export {};
 //# sourceMappingURL=validation.d.ts.map

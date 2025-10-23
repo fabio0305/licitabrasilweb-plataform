@@ -205,7 +205,7 @@ export interface RegisterForm {
   confirmPassword: string;
   firstName: string;
   lastName: string;
-  phone?: string;
+  phone: string;
   role: UserRole;
 }
 
@@ -314,4 +314,64 @@ export interface ContractFilters extends PaginationParams, DateRangeFilter {
   status?: ContractStatus;
   publicEntityId?: string;
   supplierId?: string;
+}
+
+// Interfaces para API Response
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message: string;
+  data?: T;
+  error?: string;
+}
+
+// Formulários de setup de perfil
+export interface SupplierProfileSetupForm {
+  companyName: string;
+  tradeName?: string;
+  cnpj: string;
+  stateRegistration?: string;
+  municipalRegistration?: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  phone: string;
+  website?: string;
+  description?: string;
+  categories: string[];
+}
+
+export interface PublicEntityProfileSetupForm {
+  name: string;
+  cnpj: string;
+  entityType: string;
+  sphere: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  phone: string;
+  website?: string;
+  legalRepresentativeName: string;
+  legalRepresentativeCpf: string;
+  legalRepresentativePosition: string;
+}
+
+export interface CitizenProfileSetupForm {
+  cpf: string;
+  dateOfBirth: string;
+  profession?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  interests: string[];
+}
+
+export interface AuditorProfileSetupForm {
+  cpf: string;
+  institution: string;
+  professionalRegistry: string;
+  specialization: string;
+  professionalPhone: string;
 }

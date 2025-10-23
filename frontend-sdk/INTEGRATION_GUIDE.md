@@ -56,7 +56,7 @@ try {
     password: 'MinhaSenga123!',
     firstName: 'João',
     lastName: 'Silva',
-    phone: '(11) 99999-9999',
+    phone: '(11) 9 9999-9999',
     role: 'CITIZEN'
   });
   console.log('Usuário registrado:', user);

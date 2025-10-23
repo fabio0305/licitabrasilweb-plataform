@@ -169,12 +169,16 @@ model PublicEntity {
   name        String
   cnpj        String   @unique
   entityType  String   // Municipal, Estadual, Federal
+  sphere      String?  // Executivo, Legislativo, Judiciário
   address     String
   city        String
   state       String
   zipCode     String
   phone       String
   website     String?
+  legalRepresentativeName String?
+  legalRepresentativeCpf  String?
+  legalRepresentativePosition String?
   isActive    Boolean  @default(true)
   verifiedAt  DateTime?
   createdAt   DateTime @default(now())

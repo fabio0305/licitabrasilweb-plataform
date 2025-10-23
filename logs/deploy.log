@@ -1,0 +1,6 @@
+[0;32m[2025-10-23 00:52:59] Iniciando deploy para ambiente: production[0m
+[0;32m[2025-10-23 00:52:59] Docker e Docker Compose verificados[0m
+[0;32m[2025-10-23 00:52:59] Arquivo de ambiente configurado para production[0m
+[0;32m[2025-10-23 00:52:59] Iniciando backup do banco de dados...[0m
+[0;32m[2025-10-23 00:52:59] Backup criado: ./backups/backup_20251023_005259.sql[0m
+[0;32m[2025-10-23 00:52:59] Executando testes...[0m

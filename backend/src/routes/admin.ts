@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticate, requireAdminAccess } from '../middleware/auth';
-import { validatePagination, validateUuidParam } from '../middleware/validation';
+import { validatePagination, validateUuidParam, validateUserList } from '../middleware/validation';
 import { asyncHandler } from '../middleware/errorHandler';
 import { AdminController } from '../controllers/AdminController';
 import { UserController } from '../controllers/UserController';
@@ -22,10 +22,11 @@ router.use(authenticate);
 router.use(requireAdminAccess);
 
 // Gestão de usuários
-router.get('/users', validatePagination, asyncHandler(userController.list));
+router.get('/users', validateUserList, asyncHandler(userController.list));
 router.get('/users/statistics', asyncHandler(userController.getStatistics));
 router.put('/users/:id/status', validateUuidParam, asyncHandler(userController.updateStatus));
 router.put('/users/:id/role', validateUuidParam, asyncHandler(userController.updateRole));
+router.delete('/users/:id', validateUuidParam, asyncHandler(userController.delete));
 
 // Gestão de fornecedores
 router.get('/suppliers', validatePagination, asyncHandler(supplierController.list));

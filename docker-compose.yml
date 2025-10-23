@@ -55,7 +55,7 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD:-redis123}@redis:6379
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-your-refresh-secret-change-in-production}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,https://licitabrasilweb.com.br}
+      CORS_ORIGINS: "https://licitabrasilweb.com.br,https://www.licitabrasilweb.com.br,https://api.licitabrasilweb.com.br,http://localhost,http://localhost:80,http://localhost:3000"
       SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER}

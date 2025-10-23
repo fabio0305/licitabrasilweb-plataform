@@ -172,12 +172,16 @@ export class PublicEntityController {
       name,
       cnpj,
       entityType,
+      sphere,
       address,
       city,
       state,
       zipCode,
       phone,
       website,
+      legalRepresentativeName,
+      legalRepresentativeCpf,
+      legalRepresentativePosition,
     } = req.body;
 
     // Verificar se o usuário já tem um perfil de órgão público
@@ -204,12 +208,16 @@ export class PublicEntityController {
         name,
         cnpj,
         entityType,
+        sphere,
         address,
         city,
         state,
         zipCode,
         phone,
         website,
+        legalRepresentativeName,
+        legalRepresentativeCpf,
+        legalRepresentativePosition,
       },
       include: {
         user: {
