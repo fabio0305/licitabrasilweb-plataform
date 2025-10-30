@@ -67,7 +67,32 @@ const limiter = rateLimit({
 });
 
 // Middlewares de segurança
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      connectSrc: [
+        "'self'",
+        "https://licitabrasilweb.com.br",
+        "https://www.licitabrasilweb.com.br",
+        "https://api.licitabrasilweb.com.br",
+        "https://monitoring.licitabrasilweb.com.br",
+        "wss://licitabrasilweb.com.br",
+        "wss://api.licitabrasilweb.com.br"
+      ],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+      imgSrc: ["'self'", "data:", "https:"],
+      fontSrc: ["'self'", "data:", "https:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'self'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"]
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Permite requisições cross-origin
+}));
 app.use(limiter);
 
 // Configuração CORS

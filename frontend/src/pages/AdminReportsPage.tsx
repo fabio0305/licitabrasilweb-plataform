@@ -58,29 +58,43 @@ const DRAWER_WIDTH = 280;
 interface ReportData {
   users: {
     total: number;
+    active: number;
+    pending: number;
     byRole: Record<string, number>;
-    byStatus: Record<string, number>;
-    growth: Array<{ month: string; count: number }>;
+  };
+  suppliers: {
+    total: number;
+    active: number;
+    verified: number;
+  };
+  publicEntities: {
+    total: number;
+    active: number;
+    verified: number;
   };
   biddings: {
     total: number;
-    byType: Record<string, number>;
+    open: number;
+    closed: number;
     byStatus: Record<string, number>;
-    totalValue: number;
-    avgValue: number;
-    growth: Array<{ month: string; count: number; value: number }>;
   };
   proposals: {
     total: number;
+    submitted: number;
+    accepted: number;
     byStatus: Record<string, number>;
-    avgPerBidding: number;
-    successRate: number;
   };
   contracts: {
     total: number;
+    active: number;
+    completed: number;
     totalValue: number;
-    avgValue: number;
-    byStatus: Record<string, number>;
+  };
+  recentActivity: {
+    newUsers: number;
+    newBiddings: number;
+    newProposals: number;
+    newContracts: number;
   };
 }
 
@@ -163,9 +177,9 @@ const AdminReportsPage: React.FC = () => {
         type: reportType,
       });
 
-      const response = await apiCall.get(`/admin/reports?${params.toString()}`);
+      const response = await apiCall.get(`/admin/statistics?${params.toString()}`);
       if (response.success && response.data) {
-        setReportData(response.data);
+        setReportData(response.data.statistics);
       }
     } catch (error) {
       console.error('Erro ao carregar dados dos relatórios:', error);
@@ -511,10 +525,10 @@ const AdminReportsPage: React.FC = () => {
                       <Paper elevation={0} sx={{ p: 2, bgcolor: 'warning.light', color: 'white', textAlign: 'center' }}>
                         <TrendingUp sx={{ fontSize: 40, mb: 1 }} />
                         <Typography variant="h4" sx={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
-                          {formatCurrency(reportData.biddings.totalValue)}
+                          {reportData.biddings.total}
                         </Typography>
                         <Typography variant="body2">
-                          Valor Total Licitado
+                          Total de Licitações
                         </Typography>
                       </Paper>
                     </Grid>
@@ -574,21 +588,21 @@ const AdminReportsPage: React.FC = () => {
                       </Typography>
                       <Box sx={{ mt: 2 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                          <Typography variant="body2">Taxa de Sucesso das Propostas</Typography>
+                          <Typography variant="body2">Propostas Aceitas</Typography>
                           <Typography variant="h6" color="success.main">
-                            {formatPercentage(reportData.proposals.successRate)}
+                            {reportData.proposals.accepted}
                           </Typography>
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                          <Typography variant="body2">Média de Propostas por Licitação</Typography>
+                          <Typography variant="body2">Propostas Submetidas</Typography>
                           <Typography variant="h6" color="info.main">
-                            {reportData.proposals.avgPerBidding.toFixed(1)}
+                            {reportData.proposals.submitted}
                           </Typography>
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                          <Typography variant="body2">Valor Médio das Licitações</Typography>
+                          <Typography variant="body2">Licitações Abertas</Typography>
                           <Typography variant="h6" color="warning.main">
-                            {formatCurrency(reportData.biddings.avgValue)}
+                            {reportData.biddings.open}
                           </Typography>
                         </Box>
                       </Box>
@@ -618,9 +632,9 @@ const AdminReportsPage: React.FC = () => {
                           </Typography>
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                          <Typography variant="body2">Valor Médio dos Contratos</Typography>
+                          <Typography variant="body2">Contratos Ativos</Typography>
                           <Typography variant="h6" color="info.main">
-                            {formatCurrency(reportData.contracts.avgValue)}
+                            {reportData.contracts.active}
                           </Typography>
                         </Box>
                       </Box>

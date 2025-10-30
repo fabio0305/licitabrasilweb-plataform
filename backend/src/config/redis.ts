@@ -120,9 +120,19 @@ class RedisClient {
     }
   }
 
-  async expire(key: string, seconds: number): Promise<void> {
+  async incr(key: string): Promise<number> {
     try {
-      await this.client.expire(key, seconds);
+      return await this.client.incr(key);
+    } catch (error) {
+      logger.error(`❌ Erro ao incrementar chave ${key}:`, error);
+      throw error;
+    }
+  }
+
+  async expire(key: string, seconds: number): Promise<boolean> {
+    try {
+      const result = await this.client.expire(key, seconds);
+      return result;
     } catch (error) {
       logger.error(`❌ Erro ao definir expiração para chave ${key}:`, error);
       throw error;

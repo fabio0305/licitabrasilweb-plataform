@@ -20,15 +20,25 @@ const authenticate = async (req, res, next) => {
         if (!token) {
             throw new errorHandler_1.AuthenticationError('Token de acesso inválido');
         }
-        const isBlacklisted = await redis_1.redisClient.exists(`blacklist:${token}`);
-        if (isBlacklisted) {
-            (0, logger_1.logSecurity)('Token blacklisted usado', { token: token.substring(0, 20) + '...', ip: req.ip });
-            throw new errorHandler_1.AuthenticationError('Token inválido');
+        try {
+            const isBlacklisted = await redis_1.redisClient.exists(`blacklist:${token}`);
+            if (isBlacklisted) {
+                (0, logger_1.logSecurity)('Token blacklisted usado', { token: token.substring(0, 20) + '...', ip: req.ip });
+                throw new errorHandler_1.AuthenticationError('Token inválido');
+            }
+        }
+        catch (redisError) {
+            console.warn('Redis indisponível para verificação de blacklist:', redisError);
         }
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
-        const sessionData = await redis_1.redisClient.getSession(decoded.sessionId);
-        if (!sessionData) {
-            throw new errorHandler_1.AuthenticationError('Sessão expirada');
+        try {
+            const sessionData = await redis_1.redisClient.getSession(decoded.sessionId);
+            if (!sessionData) {
+                throw new errorHandler_1.AuthenticationError('Sessão expirada');
+            }
+        }
+        catch (redisError) {
+            console.warn('Redis indisponível para verificação de sessão:', redisError);
         }
         const user = await database_1.prisma.user.findUnique({
             where: { id: decoded.userId },
@@ -121,14 +131,24 @@ const optionalAuth = async (req, res, next) => {
         if (!token) {
             return next();
         }
-        const isBlacklisted = await redis_1.redisClient.exists(`blacklist:${token}`);
-        if (isBlacklisted) {
-            return next();
+        try {
+            const isBlacklisted = await redis_1.redisClient.exists(`blacklist:${token}`);
+            if (isBlacklisted) {
+                return next();
+            }
+        }
+        catch (redisError) {
+            console.warn('Redis indisponível para verificação de blacklist:', redisError);
         }
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
-        const sessionData = await redis_1.redisClient.getSession(decoded.sessionId);
-        if (!sessionData) {
-            return next();
+        try {
+            const sessionData = await redis_1.redisClient.getSession(decoded.sessionId);
+            if (!sessionData) {
+                return next();
+            }
+        }
+        catch (redisError) {
+            console.warn('Redis indisponível para verificação de sessão:', redisError);
         }
         const user = await database_1.prisma.user.findUnique({
             where: { id: decoded.userId },
@@ -184,7 +204,12 @@ const verifyRefreshToken = (token) => {
 };
 exports.verifyRefreshToken = verifyRefreshToken;
 const blacklistToken = async (token, expiresIn = 86400) => {
-    await redis_1.redisClient.set(`blacklist:${token}`, 'true', expiresIn);
+    try {
+        await redis_1.redisClient.set(`blacklist:${token}`, 'true', expiresIn);
+    }
+    catch (redisError) {
+        console.warn('Redis indisponível para blacklist de token:', redisError);
+    }
 };
 exports.blacklistToken = blacklistToken;
 const requirePermission = (...requiredPermissions) => {

@@ -8,8 +8,58 @@ const database_1 = require("../config/database");
 const errorHandler_1 = require("../middleware/errorHandler");
 const logger_1 = require("../utils/logger");
 const client_1 = require("@prisma/client");
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const emailService_1 = __importDefault(require("../services/emailService"));
 class UserController {
+    constructor() {
+        this.ADMIN_PERMISSIONS = [
+            client_1.Permission.READ_PUBLIC_DATA,
+            client_1.Permission.READ_PRIVATE_DATA,
+            client_1.Permission.WRITE_DATA,
+            client_1.Permission.DELETE_DATA,
+            client_1.Permission.CREATE_BIDDING,
+            client_1.Permission.EDIT_BIDDING,
+            client_1.Permission.DELETE_BIDDING,
+            client_1.Permission.PUBLISH_BIDDING,
+            client_1.Permission.CANCEL_BIDDING,
+            client_1.Permission.CREATE_PROPOSAL,
+            client_1.Permission.EDIT_PROPOSAL,
+            client_1.Permission.DELETE_PROPOSAL,
+            client_1.Permission.SUBMIT_PROPOSAL,
+            client_1.Permission.CREATE_CONTRACT,
+            client_1.Permission.EDIT_CONTRACT,
+            client_1.Permission.SIGN_CONTRACT,
+            client_1.Permission.TERMINATE_CONTRACT,
+            client_1.Permission.MANAGE_USERS,
+            client_1.Permission.MANAGE_SYSTEM,
+            client_1.Permission.VIEW_AUDIT_LOGS,
+            client_1.Permission.MANAGE_CATEGORIES,
+            client_1.Permission.GENERATE_REPORTS,
+            client_1.Permission.EXPORT_DATA,
+        ];
+    }
+    async grantAdminPermissions(userId) {
+        for (const permission of this.ADMIN_PERMISSIONS) {
+            await database_1.prisma.userPermission.upsert({
+                where: {
+                    userId_permission: {
+                        userId,
+                        permission,
+                    },
+                },
+                update: {
+                    isActive: true,
+                    grantedAt: new Date(),
+                },
+                create: {
+                    userId,
+                    permission,
+                    grantedBy: userId,
+                    isActive: true,
+                },
+            });
+        }
+    }
     async list(req, res) {
         const { page = 1, limit = 10, search, role, status } = req.query;
         const offset = (Number(page) - 1) * Number(limit);
@@ -202,9 +252,6 @@ class UserController {
         if (!user) {
             throw new errorHandler_1.NotFoundError('Usuário não encontrado');
         }
-        if (user.role === client_1.UserRole.ADMIN && user.id !== adminUserId) {
-            throw new errorHandler_1.AuthorizationError('Não é possível alterar status de outros administradores');
-        }
         const updatedUser = await database_1.prisma.user.update({
             where: { id },
             data: { status },
@@ -278,6 +325,18 @@ class UserController {
                 updatedAt: true,
             },
         });
+        if (role === client_1.UserRole.ADMIN && user.role !== client_1.UserRole.ADMIN) {
+            try {
+                await this.grantAdminPermissions(id);
+                (0, logger_1.logUserActivity)(adminUserId, 'ADMIN_PERMISSIONS_GRANTED', {
+                    targetUserId: id,
+                    permissionsCount: this.ADMIN_PERMISSIONS.length,
+                });
+            }
+            catch (error) {
+                console.error('Erro ao conceder permissões de administrador:', error);
+            }
+        }
         (0, logger_1.logUserActivity)(adminUserId, 'USER_ROLE_UPDATED', {
             targetUserId: id,
             oldRole: user.role,
@@ -285,7 +344,76 @@ class UserController {
         });
         res.json({
             success: true,
-            message: 'Role do usuário atualizado com sucesso',
+            message: role === client_1.UserRole.ADMIN && user.role !== client_1.UserRole.ADMIN
+                ? 'Role do usuário atualizado com sucesso e permissões de administrador concedidas'
+                : 'Role do usuário atualizado com sucesso',
+            data: { user: updatedUser },
+        });
+    }
+    async update(req, res) {
+        const { id } = req.params;
+        const { firstName, lastName, phone, email } = req.body;
+        const adminUserId = req.user.userId;
+        if (!firstName || !lastName || !email) {
+            throw new errorHandler_1.ValidationError('Nome, sobrenome e email são obrigatórios');
+        }
+        const existingUser = await database_1.prisma.user.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+                role: true,
+                status: true,
+            },
+        });
+        if (!existingUser) {
+            throw new errorHandler_1.NotFoundError('Usuário não encontrado');
+        }
+        if (email !== existingUser.email) {
+            const emailExists = await database_1.prisma.user.findFirst({
+                where: {
+                    email,
+                    id: { not: id },
+                },
+            });
+            if (emailExists) {
+                throw new errorHandler_1.ValidationError('Este email já está sendo usado por outro usuário');
+            }
+        }
+        const updatedUser = await database_1.prisma.user.update({
+            where: { id },
+            data: {
+                firstName: firstName.trim(),
+                lastName: lastName.trim(),
+                phone: phone?.trim() || null,
+                email: email.trim().toLowerCase(),
+            },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+                role: true,
+                status: true,
+                updatedAt: true,
+            },
+        });
+        (0, logger_1.logUserActivity)(adminUserId, 'USER_UPDATED', {
+            targetUserId: id,
+            changes: {
+                firstName: existingUser.firstName !== firstName ? { old: existingUser.firstName, new: firstName } : undefined,
+                lastName: existingUser.lastName !== lastName ? { old: existingUser.lastName, new: lastName } : undefined,
+                phone: existingUser.phone !== phone ? { old: existingUser.phone, new: phone } : undefined,
+                email: existingUser.email !== email ? { old: existingUser.email, new: email } : undefined,
+            },
+        });
+        res.json({
+            success: true,
+            message: 'Dados do usuário atualizados com sucesso',
             data: { user: updatedUser },
         });
     }
@@ -312,8 +440,8 @@ class UserController {
         if (!user) {
             throw new errorHandler_1.NotFoundError('Usuário não encontrado');
         }
-        if (user.role === client_1.UserRole.ADMIN && user.id !== adminUserId) {
-            throw new errorHandler_1.AuthorizationError('Não é possível excluir outros administradores');
+        if (user.id === adminUserId) {
+            throw new errorHandler_1.AuthorizationError('Não é possível excluir sua própria conta');
         }
         const hasAssociatedData = (user.supplier && (user.supplier.proposals.length > 0 || user.supplier.contracts.length > 0)) ||
             (user.publicEntity && (user.publicEntity.biddings.length > 0 || user.publicEntity.contracts.length > 0));
@@ -331,6 +459,181 @@ class UserController {
         res.json({
             success: true,
             message: 'Usuário excluído com sucesso',
+        });
+    }
+    async resetPassword(req, res) {
+        const { id } = req.params;
+        const { newPassword } = req.body;
+        const adminUserId = req.user.userId;
+        const user = await database_1.prisma.user.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+            },
+        });
+        if (!user) {
+            throw new errorHandler_1.NotFoundError('Usuário não encontrado');
+        }
+        let passwordToUse;
+        if (newPassword) {
+            if (newPassword.length < 8) {
+                throw new errorHandler_1.ValidationError('A senha deve ter pelo menos 8 caracteres');
+            }
+            passwordToUse = newPassword;
+        }
+        else {
+            passwordToUse = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+        }
+        const hashedPassword = await bcryptjs_1.default.hash(passwordToUse, 12);
+        await database_1.prisma.user.update({
+            where: { id },
+            data: {
+                password: hashedPassword
+            },
+        });
+        (0, logger_1.logUserActivity)(adminUserId, 'USER_PASSWORD_RESET', {
+            targetUserId: id,
+            targetUserEmail: user.email,
+            customPassword: !!newPassword
+        });
+        res.json({
+            success: true,
+            message: 'Senha alterada com sucesso.',
+            data: newPassword ? {} : { tempPassword: passwordToUse }
+        });
+    }
+    async createUser(req, res) {
+        const { email, firstName, lastName, phone, cpf, password, role } = req.body;
+        const adminUserId = req.user.userId;
+        if (!Object.values(client_1.UserRole).includes(role)) {
+            throw new errorHandler_1.ValidationError('Role inválido');
+        }
+        if (!email || !firstName || !lastName || !phone || !role) {
+            throw new errorHandler_1.ValidationError('Todos os campos são obrigatórios');
+        }
+        const existingUserByEmail = await database_1.prisma.user.findUnique({
+            where: { email },
+        });
+        if (existingUserByEmail) {
+            throw new errorHandler_1.ConflictError('Email já está em uso');
+        }
+        if (cpf) {
+            const existingUserByCpf = await database_1.prisma.user.findUnique({
+                where: { cpf },
+            });
+            if (existingUserByCpf) {
+                throw new errorHandler_1.ConflictError('CPF já cadastrado');
+            }
+        }
+        let passwordToUse;
+        if (password) {
+            if (password.length < 8) {
+                throw new errorHandler_1.ValidationError('A senha deve ter pelo menos 8 caracteres');
+            }
+            passwordToUse = password;
+        }
+        else {
+            passwordToUse = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+        }
+        const hashedPassword = await bcryptjs_1.default.hash(passwordToUse, 12);
+        const newUser = await database_1.prisma.user.create({
+            data: {
+                email,
+                firstName,
+                lastName,
+                phone,
+                cpf: cpf || null,
+                role,
+                password: hashedPassword,
+                status: client_1.UserStatus.ACTIVE
+            },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+                cpf: true,
+                role: true,
+                status: true,
+                createdAt: true,
+            },
+        });
+        if (role === client_1.UserRole.ADMIN) {
+            try {
+                await this.grantAdminPermissions(newUser.id);
+                (0, logger_1.logUserActivity)(adminUserId, 'ADMIN_PERMISSIONS_GRANTED', {
+                    targetUserId: newUser.id,
+                    permissionsCount: this.ADMIN_PERMISSIONS.length,
+                });
+            }
+            catch (error) {
+                console.error('Erro ao conceder permissões de administrador:', error);
+            }
+        }
+        (0, logger_1.logUserActivity)(adminUserId, 'USER_CREATED', {
+            targetUserId: newUser.id,
+            targetUserEmail: newUser.email,
+            targetUserRole: newUser.role,
+            hasCpf: !!cpf,
+            customPassword: !!password
+        });
+        res.status(201).json({
+            success: true,
+            message: role === client_1.UserRole.ADMIN
+                ? 'Usuário administrador criado com sucesso e permissões concedidas.'
+                : 'Usuário criado com sucesso.',
+            data: {
+                user: newUser,
+                ...(password ? {} : { tempPassword: passwordToUse })
+            },
+        });
+    }
+    async getUserPermissions(req, res) {
+        const { id } = req.params;
+        const user = await database_1.prisma.user.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+                status: true,
+                permissions: {
+                    where: { isActive: true },
+                    select: {
+                        permission: true,
+                        grantedAt: true,
+                        grantedBy: true,
+                    },
+                    orderBy: { permission: 'asc' }
+                }
+            },
+        });
+        if (!user) {
+            throw new errorHandler_1.NotFoundError('Usuário não encontrado');
+        }
+        res.json({
+            success: true,
+            message: 'Permissões do usuário obtidas com sucesso',
+            data: {
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    role: user.role,
+                    status: user.status,
+                },
+                permissions: user.permissions,
+                permissionsCount: user.permissions.length,
+                hasAllAdminPermissions: user.role === client_1.UserRole.ADMIN && user.permissions.length === this.ADMIN_PERMISSIONS.length,
+            },
         });
     }
     async getStatistics(req, res) {

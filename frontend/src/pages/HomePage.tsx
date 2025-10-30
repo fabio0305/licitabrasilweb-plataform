@@ -221,7 +221,7 @@ const HomePage: React.FC = () => {
                 <Button
                   variant="contained"
                   color="secondary"
-                  onClick={() => navigate('/register')}
+                  onClick={() => navigate('/cadastro/validar-cpf')}
                   sx={{
                     fontWeight: 600,
                     px: 3,
@@ -354,7 +354,7 @@ const HomePage: React.FC = () => {
                         },
                         transition: 'all 0.3s ease'
                       }}
-                      onClick={() => navigate('/register')}
+                      onClick={() => navigate('/cadastro/validar-cpf')}
                     >
                       Começar Gratuitamente
                     </Button>
@@ -941,7 +941,7 @@ const HomePage: React.FC = () => {
                 },
                 transition: 'all 0.3s ease'
               }}
-              onClick={() => navigate('/register')}
+              onClick={() => navigate('/cadastro/validar-cpf')}
             >
               Cadastrar Gratuitamente
             </Button>

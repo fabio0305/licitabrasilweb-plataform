@@ -113,9 +113,19 @@ class RedisClient {
             return false;
         }
     }
+    async incr(key) {
+        try {
+            return await this.client.incr(key);
+        }
+        catch (error) {
+            logger_1.logger.error(`❌ Erro ao incrementar chave ${key}:`, error);
+            throw error;
+        }
+    }
     async expire(key, seconds) {
         try {
-            await this.client.expire(key, seconds);
+            const result = await this.client.expire(key, seconds);
+            return result;
         }
         catch (error) {
             logger_1.logger.error(`❌ Erro ao definir expiração para chave ${key}:`, error);

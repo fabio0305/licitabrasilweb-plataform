@@ -207,6 +207,7 @@ export interface RegisterForm {
   lastName: string;
   phone: string;
   role: UserRole;
+  cpf?: string;
 }
 
 export interface SupplierForm {

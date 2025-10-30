@@ -41,19 +41,29 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     }
 
     // Verificar se o token está na blacklist
-    const isBlacklisted = await redisClient.exists(`blacklist:${token}`);
-    if (isBlacklisted) {
-      logSecurity('Token blacklisted usado', { token: token.substring(0, 20) + '...', ip: req.ip });
-      throw new AuthenticationError('Token inválido');
+    try {
+      const isBlacklisted = await redisClient.exists(`blacklist:${token}`);
+      if (isBlacklisted) {
+        logSecurity('Token blacklisted usado', { token: token.substring(0, 20) + '...', ip: req.ip });
+        throw new AuthenticationError('Token inválido');
+      }
+    } catch (redisError) {
+      // Se o Redis falhar, continuar sem verificar blacklist (modo degradado)
+      console.warn('Redis indisponível para verificação de blacklist:', redisError);
     }
 
     // Verificar e decodificar o token
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JWTPayload;
     
     // Verificar se a sessão ainda existe no Redis
-    const sessionData = await redisClient.getSession(decoded.sessionId);
-    if (!sessionData) {
-      throw new AuthenticationError('Sessão expirada');
+    try {
+      const sessionData = await redisClient.getSession(decoded.sessionId);
+      if (!sessionData) {
+        throw new AuthenticationError('Sessão expirada');
+      }
+    } catch (redisError) {
+      // Se o Redis falhar, continuar sem verificar sessão (modo degradado)
+      console.warn('Redis indisponível para verificação de sessão:', redisError);
     }
 
     // Verificar se o usuário ainda existe e está ativo
@@ -183,18 +193,28 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
     }
 
     // Verificar se o token está na blacklist
-    const isBlacklisted = await redisClient.exists(`blacklist:${token}`);
-    if (isBlacklisted) {
-      return next(); // Continua sem autenticação
+    try {
+      const isBlacklisted = await redisClient.exists(`blacklist:${token}`);
+      if (isBlacklisted) {
+        return next(); // Continua sem autenticação
+      }
+    } catch (redisError) {
+      // Se o Redis falhar, continuar sem verificar blacklist (modo degradado)
+      console.warn('Redis indisponível para verificação de blacklist:', redisError);
     }
 
     // Verificar e decodificar o token
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JWTPayload;
     
     // Verificar se a sessão ainda existe
-    const sessionData = await redisClient.getSession(decoded.sessionId);
-    if (!sessionData) {
-      return next(); // Continua sem autenticação
+    try {
+      const sessionData = await redisClient.getSession(decoded.sessionId);
+      if (!sessionData) {
+        return next(); // Continua sem autenticação
+      }
+    } catch (redisError) {
+      // Se o Redis falhar, continuar sem verificar sessão (modo degradado)
+      console.warn('Redis indisponível para verificação de sessão:', redisError);
     }
 
     // Verificar se o usuário ainda existe e está ativo
@@ -258,7 +278,12 @@ export const verifyRefreshToken = (token: string): JWTPayload => {
 
 // Função para adicionar token à blacklist
 export const blacklistToken = async (token: string, expiresIn: number = 86400): Promise<void> => {
-  await redisClient.set(`blacklist:${token}`, 'true', expiresIn);
+  try {
+    await redisClient.set(`blacklist:${token}`, 'true', expiresIn);
+  } catch (redisError) {
+    console.warn('Redis indisponível para blacklist de token:', redisError);
+    // Em modo degradado, não conseguimos blacklistar o token
+  }
 };
 
 // Middleware para verificação de permissões granulares

@@ -18,8 +18,18 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
 
+  console.log('🔍 ProtectedRoute - Debug Info:', {
+    pathname: location.pathname,
+    isAuthenticated: isAuthenticated,
+    isLoading: isLoading,
+    user: user,
+    userRole: user?.role,
+    requiredRoles: requiredRoles
+  });
+
   // Mostrar loading enquanto verifica autenticação
   if (isLoading) {
+    console.log('⏳ ProtectedRoute - Mostrando loading...');
     return (
       <Box
         display="flex"
@@ -34,17 +44,26 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Redirecionar para login se não autenticado
   if (!isAuthenticated) {
+    console.log('❌ ProtectedRoute - Não autenticado, redirecionando para login');
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
   // Verificar roles se especificados
   if (requiredRoles && requiredRoles.length > 0 && user) {
     const hasRequiredRole = requiredRoles.includes(user.role);
+    console.log('🔍 ProtectedRoute - Verificando role:', {
+      userRole: user.role,
+      requiredRoles: requiredRoles,
+      hasRequiredRole: hasRequiredRole
+    });
+
     if (!hasRequiredRole) {
+      console.log('❌ ProtectedRoute - Role não autorizada, redirecionando para unauthorized');
       return <Navigate to="/unauthorized" replace />;
     }
   }
 
+  console.log('✅ ProtectedRoute - Renderizando children');
   return <>{children}</>;
 };
 

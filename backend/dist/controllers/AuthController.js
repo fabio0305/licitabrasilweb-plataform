@@ -12,14 +12,102 @@ const auth_1 = require("../middleware/auth");
 const errorHandler_1 = require("../middleware/errorHandler");
 const logger_1 = require("../utils/logger");
 const client_1 = require("@prisma/client");
+const cpfValidation_1 = require("../utils/cpfValidation");
+const auditService_1 = __importDefault(require("../services/auditService"));
+const rateLimiting_1 = require("../middleware/rateLimiting");
 class AuthController {
+    constructor() {
+        this.auditService = auditService_1.default.getInstance();
+    }
+    async validateCpf(req, res) {
+        const { cpf } = req.body;
+        try {
+            const cpfValidation = (0, cpfValidation_1.validateCpf)(cpf);
+            if (!cpfValidation.isValid) {
+                await this.auditService.logCpfValidation(req, cpf, 'FAILURE', false, cpfValidation.error);
+                return res.status(400).json({
+                    success: false,
+                    error: {
+                        code: 'INVALID_CPF',
+                        message: cpfValidation.error,
+                        type: 'ValidationError'
+                    },
+                    timestamp: new Date().toISOString(),
+                    path: req.path,
+                    method: req.method
+                });
+            }
+            const existingUser = await database_1.prisma.user.findUnique({
+                where: { cpf: cpfValidation.formatted },
+                select: {
+                    id: true,
+                    email: true,
+                    firstName: true,
+                    lastName: true,
+                    role: true,
+                    status: true,
+                },
+            });
+            if (existingUser) {
+                await this.auditService.logCpfValidation(req, cpf, 'FAILURE', true, 'CPF já cadastrado');
+                return res.status(409).json({
+                    success: false,
+                    message: 'CPF já cadastrado',
+                    data: {
+                        isRegistered: true,
+                        user: {
+                            firstName: existingUser.firstName,
+                            lastName: existingUser.lastName,
+                            email: existingUser.email,
+                            role: existingUser.role,
+                            status: existingUser.status,
+                        },
+                    },
+                });
+            }
+            await this.auditService.logCpfValidation(req, cpf, 'SUCCESS', false);
+            res.json({
+                success: true,
+                message: 'CPF válido e disponível para cadastro',
+                data: {
+                    isRegistered: false,
+                    cpf: cpfValidation.formatted,
+                },
+            });
+        }
+        catch (error) {
+            await this.auditService.logCpfValidation(req, cpf, 'ERROR', false, error instanceof Error ? error.message : 'Erro interno');
+            logger_1.logger.error('Erro na validação de CPF', error);
+            res.status(500).json({
+                success: false,
+                error: {
+                    code: 'INTERNAL_ERROR',
+                    message: 'Erro interno do servidor',
+                    type: 'InternalError'
+                },
+                timestamp: new Date().toISOString(),
+                path: req.path,
+                method: req.method
+            });
+        }
+    }
     async register(req, res) {
-        const { email, password, firstName, lastName, phone, role } = req.body;
-        const existingUser = await database_1.prisma.user.findUnique({
-            where: { email },
+        const { email, password, firstName, lastName, phone, role, cpf } = req.body;
+        const existingUser = await database_1.prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email },
+                    ...(cpf ? [{ cpf }] : []),
+                ],
+            },
         });
         if (existingUser) {
-            throw new errorHandler_1.ConflictError('Email já está em uso');
+            if (existingUser.email === email) {
+                throw new errorHandler_1.ConflictError('Email já está em uso');
+            }
+            if (existingUser.cpf === cpf) {
+                throw new errorHandler_1.ConflictError('CPF já cadastrado');
+            }
         }
         const hashedPassword = await bcryptjs_1.default.hash(password, parseInt(process.env.BCRYPT_ROUNDS || '12'));
         let initialStatus = client_1.UserStatus.PENDING;
@@ -29,6 +117,7 @@ class AuthController {
         const user = await database_1.prisma.user.create({
             data: {
                 email,
+                cpf,
                 password: hashedPassword,
                 firstName,
                 lastName,
@@ -59,74 +148,115 @@ class AuthController {
     }
     async login(req, res) {
         const { email, password } = req.body;
-        const user = await database_1.prisma.user.findUnique({
-            where: { email },
-        });
-        if (!user) {
-            (0, logger_1.logAuth)('Tentativa de login com email inexistente', undefined, req.ip);
-            throw new errorHandler_1.AuthenticationError('Credenciais inválidas');
+        const clientIp = req.ip || 'unknown';
+        const failureKey = `login_failures:${clientIp}`;
+        try {
+            const currentFailures = await redis_1.redisClient.get(failureKey);
+            const failureCount = currentFailures ? parseInt(currentFailures) : 0;
+            if (failureCount >= 3) {
+                logger_1.logger.warn('Rate limit de falhas de login excedido', {
+                    ip: clientIp,
+                    failures: failureCount,
+                    email: email
+                });
+                return res.status(429).json({
+                    success: false,
+                    error: {
+                        code: 'RATE_LIMIT_EXCEEDED',
+                        message: 'Muitas tentativas de login com credenciais inválidas. Tente novamente em 10 minutos.',
+                        type: 'RateLimitError'
+                    },
+                    retryAfter: 600,
+                    timestamp: new Date().toISOString(),
+                    path: req.path,
+                    method: req.method
+                });
+            }
         }
-        const isPasswordValid = await bcryptjs_1.default.compare(password, user.password);
-        if (!isPasswordValid) {
-            (0, logger_1.logAuth)('Tentativa de login com senha incorreta', user.id, req.ip);
-            throw new errorHandler_1.AuthenticationError('Credenciais inválidas');
+        catch (redisError) {
+            logger_1.logger.error('Erro ao verificar rate limiting de falhas:', redisError);
         }
-        if (user.status !== 'ACTIVE') {
-            (0, logger_1.logAuth)('Tentativa de login com conta inativa', user.id, req.ip);
-            throw new errorHandler_1.AuthenticationError('Conta inativa ou pendente de aprovação');
-        }
-        const sessionId = (0, uuid_1.v4)();
-        const tokenPayload = {
-            userId: user.id,
-            email: user.email,
-            role: user.role,
-            sessionId,
-        };
-        const accessToken = (0, auth_1.generateToken)(tokenPayload);
-        const refreshToken = (0, auth_1.generateRefreshToken)(tokenPayload);
-        await redis_1.redisClient.setSession(sessionId, {
-            userId: user.id,
-            email: user.email,
-            role: user.role,
-            loginAt: new Date().toISOString(),
-            ipAddress: req.ip,
-            userAgent: req.get('User-Agent'),
-        }, 7 * 24 * 60 * 60);
-        await database_1.prisma.userSession.create({
-            data: {
-                id: sessionId,
+        try {
+            const user = await database_1.prisma.user.findUnique({
+                where: { email },
+            });
+            if (!user) {
+                await (0, rateLimiting_1.incrementLoginFailure)(clientIp);
+                (0, logger_1.logAuth)('Tentativa de login com email inexistente', undefined, clientIp);
+                await this.auditService.logLoginAttempt(req, email, 'FAILURE', 'Email não encontrado');
+                throw new errorHandler_1.AuthenticationError('Credenciais inválidas');
+            }
+            const isPasswordValid = await bcryptjs_1.default.compare(password, user.password);
+            if (!isPasswordValid) {
+                await (0, rateLimiting_1.incrementLoginFailure)(clientIp);
+                (0, logger_1.logAuth)('Tentativa de login com senha incorreta', user.id, clientIp);
+                await this.auditService.logLoginAttempt(req, email, 'FAILURE', 'Senha incorreta');
+                throw new errorHandler_1.AuthenticationError('Credenciais inválidas');
+            }
+            if (user.status !== 'ACTIVE') {
+                await (0, rateLimiting_1.incrementLoginFailure)(clientIp);
+                (0, logger_1.logAuth)('Tentativa de login com conta inativa', user.id, clientIp);
+                await this.auditService.logLoginAttempt(req, email, 'FAILURE', `Conta com status: ${user.status}`);
+                throw new errorHandler_1.AuthenticationError('Conta inativa ou pendente de aprovação');
+            }
+            await (0, rateLimiting_1.clearLoginFailures)(clientIp);
+            const sessionId = (0, uuid_1.v4)();
+            const tokenPayload = {
                 userId: user.id,
-                token: refreshToken,
+                email: user.email,
+                role: user.role,
+                sessionId,
+            };
+            const accessToken = (0, auth_1.generateToken)(tokenPayload);
+            const refreshToken = (0, auth_1.generateRefreshToken)(tokenPayload);
+            await redis_1.redisClient.setSession(sessionId, {
+                userId: user.id,
+                email: user.email,
+                role: user.role,
+                loginAt: new Date().toISOString(),
                 ipAddress: req.ip,
                 userAgent: req.get('User-Agent'),
-                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            },
-        });
-        await database_1.prisma.user.update({
-            where: { id: user.id },
-            data: { lastLoginAt: new Date() },
-        });
-        (0, logger_1.logAuth)('Login realizado com sucesso', user.id, req.ip);
-        (0, logger_1.logUserActivity)(user.id, 'USER_LOGIN', { ip: req.ip });
-        res.json({
-            success: true,
-            message: 'Login realizado com sucesso',
-            data: {
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    role: user.role,
-                    status: user.status,
+            }, 7 * 24 * 60 * 60);
+            await database_1.prisma.userSession.create({
+                data: {
+                    id: sessionId,
+                    userId: user.id,
+                    token: refreshToken,
+                    ipAddress: req.ip,
+                    userAgent: req.get('User-Agent'),
+                    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
                 },
-                tokens: {
-                    accessToken,
-                    refreshToken,
-                    expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+            });
+            await database_1.prisma.user.update({
+                where: { id: user.id },
+                data: { lastLoginAt: new Date() },
+            });
+            (0, logger_1.logAuth)('Login realizado com sucesso', user.id, req.ip);
+            (0, logger_1.logUserActivity)(user.id, 'USER_LOGIN', { ip: req.ip });
+            await this.auditService.logLoginAttempt(req, email, 'SUCCESS', undefined, user.id);
+            res.json({
+                success: true,
+                message: 'Login realizado com sucesso',
+                data: {
+                    user: {
+                        id: user.id,
+                        email: user.email,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        role: user.role,
+                        status: user.status,
+                    },
+                    tokens: {
+                        accessToken,
+                        refreshToken,
+                        expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+                    },
                 },
-            },
-        });
+            });
+        }
+        catch (error) {
+            throw error;
+        }
     }
     async refreshToken(req, res) {
         const { refreshToken } = req.body;
@@ -239,6 +369,10 @@ class AuthController {
             },
         });
         (0, logger_1.logUserActivity)(req.user.userId, 'PROFILE_UPDATED');
+        await this.auditService.logAction('PROFILE_UPDATE', req, 'SUCCESS', {
+            updatedFields: { firstName, lastName, phone },
+            userId: req.user.userId
+        });
         res.json({
             success: true,
             message: 'Perfil atualizado com sucesso',

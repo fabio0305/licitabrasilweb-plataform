@@ -35,7 +35,8 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // Se o token expirou (401) e não é uma tentativa de refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // E não é uma rota pública (como validação de CPF)
+    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/auth/validate-cpf')) {
       originalRequest._retry = true;
 
       try {
@@ -93,8 +94,21 @@ export const apiCall = {
   get: <T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> =>
     api.get(url, config).then(response => response.data),
 
-  post: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> =>
-    api.post(url, data, config).then(response => response.data),
+  post: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
+    console.log('📡 API POST Request:', { url, data, baseURL: API_BASE_URL });
+    return api.post(url, data, config).then(response => {
+      console.log('📡 API POST Response:', { status: response.status, data: response.data });
+      return response.data;
+    }).catch(error => {
+      console.log('📡 API POST Error:', {
+        url,
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      throw error;
+    });
+  },
 
   put: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> =>
     api.put(url, data, config).then(response => response.data),

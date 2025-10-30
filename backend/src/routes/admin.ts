@@ -24,8 +24,13 @@ router.use(requireAdminAccess);
 // Gestão de usuários
 router.get('/users', validateUserList, asyncHandler(userController.list));
 router.get('/users/statistics', asyncHandler(userController.getStatistics));
+router.get('/users/:id', validateUuidParam, asyncHandler(userController.getById));
+router.get('/users/:id/permissions', validateUuidParam, asyncHandler(userController.getUserPermissions));
+router.put('/users/:id', validateUuidParam, asyncHandler(userController.update));
 router.put('/users/:id/status', validateUuidParam, asyncHandler(userController.updateStatus));
 router.put('/users/:id/role', validateUuidParam, asyncHandler(userController.updateRole));
+router.put('/users/:id/reset-password', validateUuidParam, asyncHandler(userController.resetPassword));
+router.post('/users', asyncHandler(userController.createUser));
 router.delete('/users/:id', validateUuidParam, asyncHandler(userController.delete));
 
 // Gestão de fornecedores

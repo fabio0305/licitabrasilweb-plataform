@@ -39,25 +39,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const token = localStorage.getItem('accessToken');
         const storedUser = localStorage.getItem('user');
 
+        console.log('🔍 AuthContext - Inicializando autenticação:', {
+          hasToken: !!token,
+          hasStoredUser: !!storedUser,
+          tokenLength: token?.length || 0
+        });
+
         if (token && storedUser) {
           // Verificar se o token ainda é válido fazendo uma requisição para o perfil
           try {
+            console.log('🚀 AuthContext - Verificando token com /auth/me');
             const response = await apiCall.get<{ user: User }>('/auth/me');
+            console.log('✅ AuthContext - Resposta /auth/me:', response.success);
+
             if (response.success && response.data) {
+              console.log('✅ AuthContext - Usuário autenticado:', response.data.user.email, response.data.user.role);
               setUser(response.data.user);
               // Atualizar dados do usuário no localStorage se necessário
               localStorage.setItem('user', JSON.stringify(response.data.user));
             }
           } catch (error) {
+            console.log('❌ AuthContext - Token inválido, limpando dados:', error);
             // Token inválido, limpar dados
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
             localStorage.removeItem('user');
           }
+        } else {
+          console.log('❌ AuthContext - Sem token ou usuário armazenado');
         }
       } catch (error) {
         console.error('Erro ao inicializar autenticação:', error);
       } finally {
+        console.log('✅ AuthContext - Finalizando inicialização, setIsLoading(false)');
         setIsLoading(false);
       }
     };
@@ -96,13 +110,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Remover confirmPassword antes de enviar para o backend
       const { confirmPassword, ...dataToSend } = userData;
 
-      const response = await apiCall.post('/auth/register', dataToSend);
+      console.log('🚀 Iniciando registro de usuário:', { ...dataToSend, password: '[HIDDEN]' });
+
+      // Usando fetch diretamente para bypass do axios
+      const fetchResponse = await fetch('/api/v1/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dataToSend)
+      });
+
+      console.log('✅ Register Response Status:', fetchResponse.status);
+
+      if (fetchResponse.status === 429) {
+        console.log('⚠️ Rate limit exceeded');
+        throw new Error('Muitas tentativas de registro. Tente novamente em alguns minutos.');
+      }
+
+      if (!fetchResponse.ok) {
+        console.log('❌ HTTP Error:', fetchResponse.status, fetchResponse.statusText);
+
+        // Tentar ler a resposta de erro
+        try {
+          const errorResponse = await fetchResponse.json();
+          console.log('❌ Error Response:', errorResponse);
+          throw new Error(errorResponse.error?.message || errorResponse.message || `Erro HTTP: ${fetchResponse.status}`);
+        } catch (jsonError) {
+          throw new Error(`Erro HTTP: ${fetchResponse.status} - ${fetchResponse.statusText}`);
+        }
+      }
+
+      const response = await fetchResponse.json();
+      console.log('✅ Resposta recebida:', response);
 
       if (!response.success) {
         throw new Error(response.error?.message || 'Erro ao registrar usuário');
       }
+
+      console.log('🎉 Usuário registrado com sucesso');
     } catch (error: any) {
-      throw new Error(error.response?.data?.error?.message || error.message || 'Erro ao registrar usuário');
+      console.log('🔥 ERRO no registro:', error);
+      throw error;
     } finally {
       setIsLoading(false);
     }

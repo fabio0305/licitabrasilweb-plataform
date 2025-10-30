@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste API - LicitaBrasil</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        button {
+            background-color: #2C3F32;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #1A2A1F;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste de Conectividade API - LicitaBrasil</h1>
+        
+        <div class="test-section info">
+            <h3>📋 Informações do Teste</h3>
+            <p><strong>URL da API:</strong> https://api.licitabrasilweb.com.br/api/v1</p>
+            <p><strong>Origem:</strong> <span id="origin"></span></p>
+            <p><strong>User Agent:</strong> <span id="userAgent"></span></p>
+        </div>
+
+        <div class="test-section">
+            <h3>🔗 Teste 1: Conectividade Básica</h3>
+            <button onclick="testConnectivity()">Testar Conectividade</button>
+            <div id="connectivity-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔐 Teste 2: Validação de CPF</h3>
+            <input type="text" id="cpf-input" placeholder="Digite um CPF (ex: 123.456.789-09)" style="padding: 8px; margin: 5px; width: 200px;">
+            <button onclick="testCpfValidation()">Validar CPF</button>
+            <div id="cpf-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🌐 Teste 3: CORS</h3>
+            <button onclick="testCors()">Testar CORS</button>
+            <div id="cors-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Logs de Debug</h3>
+            <button onclick="clearLogs()">Limpar Logs</button>
+            <pre id="debug-logs"></pre>
+        </div>
+    </div>
+
+    <script>
+        // Configurações
+        const API_BASE_URL = 'https://api.licitabrasilweb.com.br/api/v1';
+        
+        // Elementos
+        const debugLogs = document.getElementById('debug-logs');
+        
+        // Função para adicionar logs
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+            debugLogs.textContent += logEntry;
+            console.log(logEntry);
+        }
+        
+        // Função para limpar logs
+        function clearLogs() {
+            debugLogs.textContent = '';
+        }
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('origin').textContent = window.location.origin;
+            document.getElementById('userAgent').textContent = navigator.userAgent;
+            addLog('Página carregada com sucesso');
+        });
+        
+        // Teste 1: Conectividade Básica
+        async function testConnectivity() {
+            const resultDiv = document.getElementById('connectivity-result');
+            resultDiv.innerHTML = '<p>🔄 Testando conectividade...</p>';
+            
+            try {
+                addLog('Iniciando teste de conectividade');
+                
+                const response = await fetch(`${API_BASE_URL}/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                addLog(`Resposta recebida: Status ${response.status}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Conectividade OK</h4>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>Resposta:</strong></p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                    addLog('Teste de conectividade: SUCESSO');
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                addLog(`Erro na conectividade: ${error.message}`, 'error');
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Erro de Conectividade</h4>
+                        <p><strong>Erro:</strong> ${error.message}</p>
+                        <p><strong>Tipo:</strong> ${error.name}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Teste 2: Validação de CPF
+        async function testCpfValidation() {
+            const cpfInput = document.getElementById('cpf-input');
+            const resultDiv = document.getElementById('cpf-result');
+            const cpf = cpfInput.value.trim();
+            
+            if (!cpf) {
+                resultDiv.innerHTML = '<div class="error"><p>❌ Digite um CPF para testar</p></div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p>🔄 Validando CPF...</p>';
+            
+            try {
+                addLog(`Iniciando validação de CPF: ${cpf}`);
+                
+                const response = await fetch(`${API_BASE_URL}/auth/validate-cpf`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    },
+                    body: JSON.stringify({ cpf: cpf })
+                });
+                
+                addLog(`Resposta da validação: Status ${response.status}`);
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Validação Realizada</h4>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>Resposta:</strong></p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                    addLog('Validação de CPF: SUCESSO');
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>⚠️ Resposta da API</h4>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>Resposta:</strong></p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                    addLog(`Validação de CPF: Status ${response.status}`, 'warn');
+                }
+            } catch (error) {
+                addLog(`Erro na validação de CPF: ${error.message}`, 'error');
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Erro na Validação</h4>
+                        <p><strong>Erro:</strong> ${error.message}</p>
+                        <p><strong>Tipo:</strong> ${error.name}</p>
+                        <p><strong>Stack:</strong></p>
+                        <pre>${error.stack}</pre>
+                    </div>
+                `;
+            }
+        }
+        
+        // Teste 3: CORS
+        async function testCors() {
+            const resultDiv = document.getElementById('cors-result');
+            resultDiv.innerHTML = '<p>🔄 Testando CORS...</p>';
+            
+            try {
+                addLog('Iniciando teste de CORS');
+                
+                const response = await fetch(`${API_BASE_URL}/auth/validate-cpf`, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': window.location.origin,
+                        'Access-Control-Request-Method': 'POST',
+                        'Access-Control-Request-Headers': 'Content-Type'
+                    }
+                });
+                
+                addLog(`Resposta CORS: Status ${response.status}`);
+                
+                const corsHeaders = {
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers'),
+                    'Access-Control-Allow-Credentials': response.headers.get('Access-Control-Allow-Credentials')
+                };
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h4>✅ CORS Testado</h4>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Headers CORS:</strong></p>
+                        <pre>${JSON.stringify(corsHeaders, null, 2)}</pre>
+                    </div>
+                `;
+                addLog('Teste de CORS: SUCESSO');
+            } catch (error) {
+                addLog(`Erro no teste de CORS: ${error.message}`, 'error');
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Erro no CORS</h4>
+                        <p><strong>Erro:</strong> ${error.message}</p>
+                        <p><strong>Tipo:</strong> ${error.name}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -5,7 +5,9 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from './contexts/AuthContext';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import RegisterPage from './pages/RegisterPage';
+import CpfValidationPage from './pages/CpfValidationPage';
 import DashboardPage from './pages/DashboardPage';
 import CitizenDashboardPage from './pages/CitizenDashboardPage';
 import SupplierDashboardPage from './pages/SupplierDashboardPage';
@@ -16,13 +18,20 @@ import AdminBiddingsPage from './pages/AdminBiddingsPage';
 import AdminReportsPage from './pages/AdminReportsPage';
 import AdminSettingsPage from './pages/AdminSettingsPage';
 import AdminAuditLogsPage from './pages/AdminAuditLogsPage';
+import TestAdminPage from './pages/TestAdminPage';
+import AdminBiddingsPageSimple from './pages/AdminBiddingsPageSimple';
+import AdminSettingsPageSimple from './pages/AdminSettingsPageSimple';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import BiddingsPage from './pages/BiddingsPage';
 import BiddingDetailPage from './pages/BiddingDetailPage';
+import ProfilePage from './pages/ProfilePage';
+import UserSettingsPage from './pages/UserSettingsPage';
 import SupplierProfileSetupPage from './pages/SupplierProfileSetupPage';
 import PublicEntityProfileSetupPage from './pages/PublicEntityProfileSetupPage';
 import CitizenProfileSetupPage from './pages/CitizenProfileSetupPage';
 import AuditorProfileSetupPage from './pages/AuditorProfileSetupPage';
+import TestAuthPage from './pages/TestAuthPage';
+import ProfileDebugPage from './pages/ProfileDebugPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { UserRole } from './types';
 
@@ -88,10 +97,17 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/validar-cpf" element={<CpfValidationPage />} />
+            <Route path="/cadastro/validar-cpf" element={<CpfValidationPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
             <Route path="/biddings" element={<BiddingsPage />} />
             <Route path="/biddings/:id" element={<BiddingDetailPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/settings" element={<UserSettingsPage />} />
+            <Route path="/test-auth" element={<TestAuthPage />} />
+            <Route path="/debug-profile" element={<ProfileDebugPage />} />
             <Route
               path="/profile-setup/supplier"
               element={
@@ -201,6 +217,30 @@ function App() {
               element={
                 <ProtectedRoute requiredRoles={[UserRole.ADMIN]}>
                   <AdminAuditLogsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test"
+              element={
+                <ProtectedRoute requiredRoles={[UserRole.ADMIN]}>
+                  <TestAdminPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/biddings-simple"
+              element={
+                <ProtectedRoute requiredRoles={[UserRole.ADMIN]}>
+                  <AdminBiddingsPageSimple />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/settings-simple"
+              element={
+                <ProtectedRoute requiredRoles={[UserRole.ADMIN]}>
+                  <AdminSettingsPageSimple />
                 </ProtectedRoute>
               }
             />

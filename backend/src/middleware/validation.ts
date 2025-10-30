@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import Joi from 'joi';
 import { ValidationError } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
+import { isValidCpf, cleanCpf } from '../utils/cpfValidation';
 
 // Interface para opções de validação
 interface ValidationOptions {
@@ -82,12 +83,20 @@ export const cnpjSchema = Joi.string()
     'string.pattern.base': 'CNPJ deve estar no formato XX.XXX.XXX/XXXX-XX',
   });
 
-// Schema para CPF
+// Schema para CPF com validação avançada
 export const cpfSchema = Joi.string()
   .pattern(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/)
+  .custom((value, helpers) => {
+    // Valida o algoritmo do CPF
+    if (!isValidCpf(value)) {
+      return helpers.error('cpf.invalid');
+    }
+    return value;
+  })
   .required()
   .messages({
     'string.pattern.base': 'CPF deve estar no formato XXX.XXX.XXX-XX',
+    'cpf.invalid': 'CPF inválido segundo algoritmo da Receita Federal',
   });
 
 // Schema para telefone
@@ -133,6 +142,11 @@ export const dateRangeSchema = Joi.object({
 
 // Schemas específicos para entidades
 
+// Schema para validação de CPF
+export const cpfValidationSchema = Joi.object({
+  cpf: cpfSchema,
+});
+
 // Schema para registro de usuário
 export const userRegistrationSchema = Joi.object({
   email: emailSchema,
@@ -141,6 +155,7 @@ export const userRegistrationSchema = Joi.object({
   lastName: Joi.string().min(2).max(50).required(),
   phone: phoneSchema.required(),
   role: Joi.string().valid('SUPPLIER', 'PUBLIC_ENTITY', 'CITIZEN', 'AUDITOR').required(),
+  cpf: cpfSchema.optional(),
 }).unknown(true); // Permite campos extras como confirmPassword
 
 // Schema para login
@@ -240,6 +255,10 @@ export const categorySchema = Joi.object({
 });
 
 // Middleware específicos para validação
+
+export const validateCpf = validate({
+  body: cpfValidationSchema,
+});
 
 export const validateUserRegistration = validate({
   body: userRegistrationSchema,

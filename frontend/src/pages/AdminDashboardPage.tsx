@@ -128,6 +128,16 @@ const AdminDashboardPage: React.FC = () => {
     setAnchorEl(null);
   };
 
+  const handleProfileClick = () => {
+    setAnchorEl(null);
+    navigate('/profile');
+  };
+
+  const handleSettingsClick = () => {
+    setAnchorEl(null);
+    navigate('/admin/settings');
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -402,10 +412,10 @@ const AdminDashboardPage: React.FC = () => {
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
           >
-            <MenuItem onClick={handleMenuClose}>
+            <MenuItem onClick={handleProfileClick}>
               Meu Perfil
             </MenuItem>
-            <MenuItem onClick={handleMenuClose}>
+            <MenuItem onClick={handleSettingsClick}>
               Configurações
             </MenuItem>
             <MenuItem onClick={handleLogout}>

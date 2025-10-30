@@ -16,21 +16,153 @@ import {
   ConflictError,
   NotFoundError 
 } from '../middleware/errorHandler';
-import { logAuth, logUserActivity } from '../utils/logger';
+import { logAuth, logUserActivity, logger } from '../utils/logger';
 import { UserStatus } from '@prisma/client';
+import { validateCpf as validateCpfAlgorithm, maskCpfForLog } from '../utils/cpfValidation';
+import AuditService from '../services/auditService';
+import { incrementLoginFailure, clearLoginFailures, loginFailureRateLimit } from '../middleware/rateLimiting';
 
 export class AuthController {
+  private auditService: AuditService;
+
+  constructor() {
+    this.auditService = AuditService.getInstance();
+  }
+
+  // Validação de CPF com auditoria e validação avançada
+  async validateCpf(req: Request, res: Response) {
+    const { cpf } = req.body;
+
+    try {
+      // Validação avançada do algoritmo do CPF
+      const cpfValidation = validateCpfAlgorithm(cpf);
+
+      if (!cpfValidation.isValid) {
+        // Log da tentativa de validação com CPF inválido
+        await this.auditService.logCpfValidation(
+          req,
+          cpf,
+          'FAILURE',
+          false,
+          cpfValidation.error
+        );
+
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'INVALID_CPF',
+            message: cpfValidation.error,
+            type: 'ValidationError'
+          },
+          timestamp: new Date().toISOString(),
+          path: req.path,
+          method: req.method
+        });
+      }
+
+      // Verificar se o CPF já está cadastrado
+      const existingUser = await prisma.user.findUnique({
+        where: { cpf: cpfValidation.formatted },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          status: true,
+        },
+      });
+
+      if (existingUser) {
+        // Log da tentativa com CPF já cadastrado
+        await this.auditService.logCpfValidation(
+          req,
+          cpf,
+          'FAILURE',
+          true,
+          'CPF já cadastrado'
+        );
+
+        return res.status(409).json({
+          success: false,
+          message: 'CPF já cadastrado',
+          data: {
+            isRegistered: true,
+            user: {
+              firstName: existingUser.firstName,
+              lastName: existingUser.lastName,
+              email: existingUser.email,
+              role: existingUser.role,
+              status: existingUser.status,
+            },
+          },
+        });
+      }
+
+      // Log da validação bem-sucedida
+      await this.auditService.logCpfValidation(
+        req,
+        cpf,
+        'SUCCESS',
+        false
+      );
+
+      res.json({
+        success: true,
+        message: 'CPF válido e disponível para cadastro',
+        data: {
+          isRegistered: false,
+          cpf: cpfValidation.formatted,
+        },
+      });
+
+    } catch (error) {
+      // Log do erro
+      await this.auditService.logCpfValidation(
+        req,
+        cpf,
+        'ERROR',
+        false,
+        error instanceof Error ? error.message : 'Erro interno'
+      );
+
+      logger.error('Erro na validação de CPF', error);
+
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Erro interno do servidor',
+          type: 'InternalError'
+        },
+        timestamp: new Date().toISOString(),
+        path: req.path,
+        method: req.method
+      });
+    }
+  }
+
   // Registro de usuário
   async register(req: Request, res: Response) {
-    const { email, password, firstName, lastName, phone, role } = req.body;
+    const { email, password, firstName, lastName, phone, role, cpf } = req.body;
 
-    // Verificar se o usuário já existe
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
+    // Verificar se o usuário já existe (por email ou CPF)
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email },
+          ...(cpf ? [{ cpf }] : []),
+        ],
+      },
     });
 
     if (existingUser) {
-      throw new ConflictError('Email já está em uso');
+      if (existingUser.email === email) {
+        throw new ConflictError('Email já está em uso');
+      }
+      if (existingUser.cpf === cpf) {
+        throw new ConflictError('CPF já cadastrado');
+      }
     }
 
     // Hash da senha
@@ -46,6 +178,7 @@ export class AuthController {
     const user = await prisma.user.create({
       data: {
         email,
+        cpf,
         password: hashedPassword,
         firstName,
         lastName,
@@ -81,29 +214,74 @@ export class AuthController {
   // Login
   async login(req: Request, res: Response) {
     const { email, password } = req.body;
+    const clientIp = req.ip || 'unknown';
 
-    // Buscar usuário
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+    // Verificar rate limiting de falhas de login antes de processar
+    const failureKey = `login_failures:${clientIp}`;
+    try {
+      const currentFailures = await redisClient.get(failureKey);
+      const failureCount = currentFailures ? parseInt(currentFailures) : 0;
 
-    if (!user) {
-      logAuth('Tentativa de login com email inexistente', undefined, req.ip);
-      throw new AuthenticationError('Credenciais inválidas');
+      if (failureCount >= 3) {
+        logger.warn('Rate limit de falhas de login excedido', {
+          ip: clientIp,
+          failures: failureCount,
+          email: email
+        });
+
+        return res.status(429).json({
+          success: false,
+          error: {
+            code: 'RATE_LIMIT_EXCEEDED',
+            message: 'Muitas tentativas de login com credenciais inválidas. Tente novamente em 10 minutos.',
+            type: 'RateLimitError'
+          },
+          retryAfter: 600, // 10 minutos
+          timestamp: new Date().toISOString(),
+          path: req.path,
+          method: req.method
+        });
+      }
+    } catch (redisError) {
+      logger.error('Erro ao verificar rate limiting de falhas:', redisError);
+      // Em caso de erro no Redis, permite continuar
     }
 
-    // Verificar senha
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      logAuth('Tentativa de login com senha incorreta', user.id, req.ip);
-      throw new AuthenticationError('Credenciais inválidas');
-    }
+    try {
+      // Buscar usuário
+      const user = await prisma.user.findUnique({
+        where: { email },
+      });
 
-    // Verificar status do usuário
-    if (user.status !== 'ACTIVE') {
-      logAuth('Tentativa de login com conta inativa', user.id, req.ip);
-      throw new AuthenticationError('Conta inativa ou pendente de aprovação');
-    }
+      if (!user) {
+        // Incrementar contador de falhas para IP
+        await incrementLoginFailure(clientIp);
+        logAuth('Tentativa de login com email inexistente', undefined, clientIp);
+        await this.auditService.logLoginAttempt(req, email, 'FAILURE', 'Email não encontrado');
+        throw new AuthenticationError('Credenciais inválidas');
+      }
+
+      // Verificar senha
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        // Incrementar contador de falhas para IP
+        await incrementLoginFailure(clientIp);
+        logAuth('Tentativa de login com senha incorreta', user.id, clientIp);
+        await this.auditService.logLoginAttempt(req, email, 'FAILURE', 'Senha incorreta');
+        throw new AuthenticationError('Credenciais inválidas');
+      }
+
+      // Verificar status do usuário
+      if (user.status !== 'ACTIVE') {
+        // Incrementar contador de falhas para IP
+        await incrementLoginFailure(clientIp);
+        logAuth('Tentativa de login com conta inativa', user.id, clientIp);
+        await this.auditService.logLoginAttempt(req, email, 'FAILURE', `Conta com status: ${user.status}`);
+        throw new AuthenticationError('Conta inativa ou pendente de aprovação');
+      }
+
+      // Login bem-sucedido - limpar contador de falhas
+      await clearLoginFailures(clientIp);
 
     // Gerar ID da sessão
     const sessionId = uuidv4();
@@ -151,25 +329,32 @@ export class AuthController {
     logAuth('Login realizado com sucesso', user.id, req.ip);
     logUserActivity(user.id, 'USER_LOGIN', { ip: req.ip });
 
-    res.json({
-      success: true,
-      message: 'Login realizado com sucesso',
-      data: {
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role,
-          status: user.status,
+    // Log de auditoria para login bem-sucedido
+    await this.auditService.logLoginAttempt(req, email, 'SUCCESS', undefined, user.id);
+
+      res.json({
+        success: true,
+        message: 'Login realizado com sucesso',
+        data: {
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+            status: user.status,
+          },
+          tokens: {
+            accessToken,
+            refreshToken,
+            expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+          },
         },
-        tokens: {
-          accessToken,
-          refreshToken,
-          expiresIn: process.env.JWT_EXPIRES_IN || '24h',
-        },
-      },
-    });
+      });
+    } catch (error) {
+      // Re-throw o erro para que seja tratado pelo middleware de erro
+      throw error;
+    }
   }
 
   // Refresh token
@@ -316,6 +501,17 @@ export class AuthController {
     });
 
     logUserActivity(req.user!.userId, 'PROFILE_UPDATED');
+
+    // Log de auditoria para atualização de perfil
+    await this.auditService.logAction(
+      'PROFILE_UPDATE',
+      req,
+      'SUCCESS',
+      {
+        updatedFields: { firstName, lastName, phone },
+        userId: req.user!.userId
+      }
+    );
 
     res.json({
       success: true,

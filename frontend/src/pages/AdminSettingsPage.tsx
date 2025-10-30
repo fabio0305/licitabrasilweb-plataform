@@ -80,12 +80,19 @@ interface ConfigSection {
 const AdminSettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading: authLoading } = useAuth();
   const theme = useTheme();
+
+  console.log('🔍 AdminSettingsPage - Debug Info:', {
+    user: user,
+    userRole: user?.role,
+    authLoading: authLoading,
+    timestamp: new Date().toISOString()
+  });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [configs, setConfigs] = useState<SystemConfig>({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -177,8 +184,9 @@ const AdminSettingsPage: React.FC = () => {
     try {
       setLoading(true);
       const response = await apiCall.get('/admin/config');
-      if (response.success && response.data) {
-        setConfigs(response.data);
+      if (response.success && response.data?.config) {
+        setConfigs(response.data.config);
+        console.log('⚙️ Configurações carregadas:', response.data.config);
       }
     } catch (error) {
       console.error('Erro ao carregar configurações:', error);
@@ -203,18 +211,26 @@ const AdminSettingsPage: React.FC = () => {
   const handleSaveConfigs = async () => {
     try {
       setSaving(true);
-      
+
       // Converter configs para o formato esperado pelo backend
       const configsToSave = Object.entries(configs).reduce((acc, [key, config]) => {
-        acc[key] = config.value;
+        acc[key] = {
+          value: config.value,
+          type: config.type,
+          description: config.description
+        };
         return acc;
       }, {} as Record<string, any>);
 
-      const response = await apiCall.put('/admin/config', configsToSave);
+      console.log('💾 Salvando configurações:', configsToSave);
+
+      const response = await apiCall.put('/admin/config', { configs: configsToSave });
       if (response.success) {
         setSnackbarMessage('Configurações salvas com sucesso!');
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
+        // Recarregar configurações para garantir sincronização
+        await loadConfigs();
       }
     } catch (error) {
       console.error('Erro ao salvar configurações:', error);
@@ -286,7 +302,19 @@ const AdminSettingsPage: React.FC = () => {
     }
   };
 
+  // Mostrar loading enquanto a autenticação está sendo verificada
+  if (authLoading) {
+    console.log('⏳ AdminSettingsPage - Aguardando autenticação...');
+    return (
+      <Container maxWidth="sm" sx={{ mt: 8, textAlign: 'center' }}>
+        <LinearProgress sx={{ mb: 2 }} />
+        <Typography>Verificando autenticação...</Typography>
+      </Container>
+    );
+  }
+
   if (!user) {
+    console.log('❌ AdminSettingsPage - Usuário não autenticado');
     return (
       <Container maxWidth="sm" sx={{ mt: 8 }}>
         <Alert severity="error">
@@ -296,15 +324,12 @@ const AdminSettingsPage: React.FC = () => {
     );
   }
 
-  // @ts-ignore
-  if (user.role !== 'ADMIN') {
-    return (
-      <Container maxWidth="sm" sx={{ mt: 8 }}>
-        <Alert severity="error">
-          Acesso negado. Esta página é restrita a administradores.
-        </Alert>
-      </Container>
-    );
+  // Verificação de autenticação já é feita pelo ProtectedRoute
+  // Removida verificação redundante de role que causava problemas de timing
+
+  // Verificação básica de segurança para TypeScript
+  if (!user) {
+    return null;
   }
 
   const drawer = (
@@ -483,9 +508,20 @@ const AdminSettingsPage: React.FC = () => {
           {loading && <LinearProgress sx={{ mb: 3 }} />}
 
           {/* Seções de Configuração */}
-          {!loading && (
+          {!loading && Object.keys(configs).length === 0 && (
+            <Alert severity="warning" sx={{ mb: 3 }}>
+              Nenhuma configuração foi carregada. Verifique a conexão com o servidor.
+            </Alert>
+          )}
+
+          {!loading && Object.keys(configs).length > 0 && (
             <Box>
-              {configSections.map((section) => (
+              {configSections.map((section) => {
+                console.log(`🔧 Renderizando seção: ${section.title}`, {
+                  configs: section.configs,
+                  availableConfigs: section.configs.map(key => ({ key, exists: !!configs[key] }))
+                });
+                return (
                 <Accordion key={section.title} sx={{ mb: 2 }}>
                   <AccordionSummary expandIcon={<ExpandMore />}>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -505,7 +541,10 @@ const AdminSettingsPage: React.FC = () => {
                     <Grid container spacing={3}>
                       {section.configs.map((configKey) => {
                         const config = configs[configKey];
-                        if (!config) return null;
+                        if (!config) {
+                          console.log(`❌ Config não encontrada: ${configKey}`);
+                          return null;
+                        }
 
                         return (
                           <Grid size={{ xs: 12, md: 6 }} key={configKey}>
@@ -524,7 +563,8 @@ const AdminSettingsPage: React.FC = () => {
                     </Grid>
                   </AccordionDetails>
                 </Accordion>
-              ))}
+                );
+              })}
 
               {/* Configurações Avançadas */}
               <Accordion sx={{ mb: 2 }}>

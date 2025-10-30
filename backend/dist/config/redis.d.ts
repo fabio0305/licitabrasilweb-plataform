@@ -11,7 +11,8 @@ declare class RedisClient {
     getObject<T>(key: string): Promise<T | null>;
     del(key: string): Promise<void>;
     exists(key: string): Promise<boolean>;
-    expire(key: string, seconds: number): Promise<void>;
+    incr(key: string): Promise<number>;
+    expire(key: string, seconds: number): Promise<boolean>;
     flushAll(): Promise<void>;
     setSession(sessionId: string, sessionData: object, expireInSeconds?: number): Promise<void>;
     getSession<T>(sessionId: string): Promise<T | null>;

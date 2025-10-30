@@ -17,23 +17,25 @@ import {
   MenuItem,
   FormHelperText,
 } from '@mui/material';
-import { 
-  Visibility, 
-  VisibilityOff, 
-  Email, 
-  Lock, 
+import {
+  Visibility,
+  VisibilityOff,
+  Email,
+  Lock,
   Person,
+  PersonAdd,
   Phone,
   Business,
   AccountBalance,
 } from '@mui/icons-material';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useNavigate, Link as RouterLink, useLocation } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import InputMask from 'react-input-mask';
 import { useAuth } from '../contexts/AuthContext';
 import { RegisterForm, UserRole } from '../types';
+import { isValidCpf, cpfMask } from '../utils/cpfValidation';
 
 const schema: yup.ObjectSchema<RegisterForm> = yup.object({
   firstName: yup
@@ -56,6 +58,12 @@ const schema: yup.ObjectSchema<RegisterForm> = yup.object({
     .mixed<UserRole>()
     .oneOf([UserRole.SUPPLIER, UserRole.PUBLIC_ENTITY, UserRole.CITIZEN, UserRole.AUDITOR], 'Tipo de usuário inválido')
     .required('Tipo de usuário é obrigatório'),
+  cpf: yup
+    .string()
+    .test('cpf-valid', 'CPF inválido', (value) => {
+      if (!value) return true; // CPF é opcional
+      return isValidCpf(value);
+    }),
   password: yup
     .string()
     .min(8, 'Senha deve ter pelo menos 8 caracteres')
@@ -72,12 +80,16 @@ const schema: yup.ObjectSchema<RegisterForm> = yup.object({
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { register } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Obter CPF do state da navegação (vindo da página de validação)
+  const cpfFromValidation = location.state?.cpf || '';
 
   const {
     control,
@@ -91,6 +103,7 @@ const RegisterPage: React.FC = () => {
       email: '',
       phone: '',
       role: UserRole.SUPPLIER,
+      cpf: cpfFromValidation,
       password: '',
       confirmPassword: '',
     },
@@ -223,6 +236,39 @@ const RegisterPage: React.FC = () => {
                 )}
               />
             </Box>
+
+            <Controller
+              name="cpf"
+              control={control}
+              render={({ field }) => (
+                <InputMask
+                  mask={cpfMask}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  disabled={!!cpfFromValidation} // Desabilitar se veio da validação
+                >
+                  {(inputProps: any) => (
+                    <TextField
+                      {...inputProps}
+                      fullWidth
+                      label="CPF"
+                      margin="normal"
+                      error={!!errors.cpf}
+                      helperText={errors.cpf?.message || (cpfFromValidation ? 'CPF validado com sucesso' : 'Opcional para alguns perfis')}
+                      placeholder="000.000.000-00"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PersonAdd color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  )}
+                </InputMask>
+              )}
+            />
 
             <Controller
               name="email"

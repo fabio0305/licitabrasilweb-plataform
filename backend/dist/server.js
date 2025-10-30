@@ -52,7 +52,32 @@ const limiter = (0, express_rate_limit_1.default)({
     standardHeaders: true,
     legacyHeaders: false,
 });
-app.use((0, helmet_1.default)());
+app.use((0, helmet_1.default)({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            connectSrc: [
+                "'self'",
+                "https://licitabrasilweb.com.br",
+                "https://www.licitabrasilweb.com.br",
+                "https://api.licitabrasilweb.com.br",
+                "https://monitoring.licitabrasilweb.com.br",
+                "wss://licitabrasilweb.com.br",
+                "wss://api.licitabrasilweb.com.br"
+            ],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+            imgSrc: ["'self'", "data:", "https:"],
+            fontSrc: ["'self'", "data:", "https:"],
+            objectSrc: ["'none'"],
+            mediaSrc: ["'self'"],
+            frameSrc: ["'self'"],
+            baseUri: ["'self'"],
+            formAction: ["'self'"]
+        },
+    },
+    crossOriginEmbedderPolicy: false,
+}));
 app.use(limiter);
 const corsOptions = {
     origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],

@@ -3,9 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateAuditorProfile = exports.auditorProfileSchema = exports.validateCitizen = exports.citizenSchema = exports.validateDateRange = exports.validateUserList = exports.validatePagination = exports.validateUuidParam = exports.validateCategory = exports.validateContract = exports.validateProposal = exports.validateBidding = exports.validatePublicEntity = exports.validateSupplier = exports.validateLogin = exports.validateUserRegistration = exports.categorySchema = exports.contractSchema = exports.proposalSchema = exports.biddingSchema = exports.publicEntitySchema = exports.supplierSchema = exports.loginSchema = exports.userRegistrationSchema = exports.dateRangeSchema = exports.userListSchema = exports.paginationSchema = exports.zipCodeSchema = exports.phoneSchema = exports.cpfSchema = exports.cnpjSchema = exports.passwordSchema = exports.emailSchema = exports.uuidSchema = exports.validate = void 0;
+exports.validateAuditorProfile = exports.auditorProfileSchema = exports.validateCitizen = exports.citizenSchema = exports.validateDateRange = exports.validateUserList = exports.validatePagination = exports.validateUuidParam = exports.validateCategory = exports.validateContract = exports.validateProposal = exports.validateBidding = exports.validatePublicEntity = exports.validateSupplier = exports.validateLogin = exports.validateUserRegistration = exports.validateCpf = exports.categorySchema = exports.contractSchema = exports.proposalSchema = exports.biddingSchema = exports.publicEntitySchema = exports.supplierSchema = exports.loginSchema = exports.userRegistrationSchema = exports.cpfValidationSchema = exports.dateRangeSchema = exports.userListSchema = exports.paginationSchema = exports.zipCodeSchema = exports.phoneSchema = exports.cpfSchema = exports.cnpjSchema = exports.passwordSchema = exports.emailSchema = exports.uuidSchema = exports.validate = void 0;
 const joi_1 = __importDefault(require("joi"));
 const errorHandler_1 = require("../middleware/errorHandler");
+const cpfValidation_1 = require("../utils/cpfValidation");
 const validate = (schema) => {
     return (req, res, next) => {
         const errors = [];
@@ -58,9 +59,16 @@ exports.cnpjSchema = joi_1.default.string()
 });
 exports.cpfSchema = joi_1.default.string()
     .pattern(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/)
+    .custom((value, helpers) => {
+    if (!(0, cpfValidation_1.isValidCpf)(value)) {
+        return helpers.error('cpf.invalid');
+    }
+    return value;
+})
     .required()
     .messages({
     'string.pattern.base': 'CPF deve estar no formato XXX.XXX.XXX-XX',
+    'cpf.invalid': 'CPF inválido segundo algoritmo da Receita Federal',
 });
 exports.phoneSchema = joi_1.default.string()
     .pattern(/^\(\d{2}\)\s\d{1}\s\d{4}-\d{4}$/)
@@ -93,6 +101,9 @@ exports.dateRangeSchema = joi_1.default.object({
     startDate: joi_1.default.date().iso().optional(),
     endDate: joi_1.default.date().iso().min(joi_1.default.ref('startDate')).optional(),
 });
+exports.cpfValidationSchema = joi_1.default.object({
+    cpf: exports.cpfSchema,
+});
 exports.userRegistrationSchema = joi_1.default.object({
     email: exports.emailSchema,
     password: exports.passwordSchema,
@@ -100,6 +111,7 @@ exports.userRegistrationSchema = joi_1.default.object({
     lastName: joi_1.default.string().min(2).max(50).required(),
     phone: exports.phoneSchema.required(),
     role: joi_1.default.string().valid('SUPPLIER', 'PUBLIC_ENTITY', 'CITIZEN', 'AUDITOR').required(),
+    cpf: exports.cpfSchema.optional(),
 }).unknown(true);
 exports.loginSchema = joi_1.default.object({
     email: exports.emailSchema,
@@ -173,6 +185,9 @@ exports.categorySchema = joi_1.default.object({
     description: joi_1.default.string().max(500).optional(),
     code: joi_1.default.string().min(2).max(20).required(),
     parentId: exports.uuidSchema.optional(),
+});
+exports.validateCpf = (0, exports.validate)({
+    body: exports.cpfValidationSchema,
 });
 exports.validateUserRegistration = (0, exports.validate)({
     body: exports.userRegistrationSchema,

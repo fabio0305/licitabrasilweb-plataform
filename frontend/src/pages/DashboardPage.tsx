@@ -137,10 +137,10 @@ const DashboardPage: React.FC = () => {
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
           >
-            <MenuItem onClick={handleMenuClose}>
+            <MenuItem onClick={() => { handleMenuClose(); navigate('/profile'); }}>
               Meu Perfil
             </MenuItem>
-            <MenuItem onClick={handleMenuClose}>
+            <MenuItem onClick={() => { handleMenuClose(); navigate('/settings'); }}>
               Configurações
             </MenuItem>
             <MenuItem onClick={handleLogout}>
