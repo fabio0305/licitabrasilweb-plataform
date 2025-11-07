@@ -56,6 +56,7 @@ import {
   Schedule,
   Storage,
   Backup,
+  Warning,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -123,13 +124,23 @@ const AdminSettingsPage: React.FC = () => {
     {
       title: 'Segurança',
       icon: <Security />,
-      configs: ['two_factor_auth', 'password_complexity', 'audit_log_retention', 'ip_whitelist']
+      configs: ['two_factor_auth', 'password_complexity']
     },
     {
       title: 'Integração',
       icon: <Cloud />,
-      configs: ['api_rate_limit', 'webhook_enabled', 'external_auth', 'backup_frequency']
+      configs: []
     }
+  ];
+
+  // Configurações avançadas específicas
+  const advancedConfigs = [
+    'api_rate_limit',
+    'audit_log_retention',
+    'ip_whitelist',
+    'webhook_enabled',
+    'external_auth',
+    'backup_frequency'
   ];
 
   // Menu lateral para administradores
@@ -570,7 +581,7 @@ const AdminSettingsPage: React.FC = () => {
               <Accordion sx={{ mb: 2 }}>
                 <AccordionSummary expandIcon={<ExpandMore />}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Lock />
+                    <Warning sx={{ color: 'warning.main' }} />
                     <Typography variant="h6" sx={{ ml: 2, fontWeight: 'bold' }}>
                       Configurações Avançadas
                     </Typography>
@@ -579,15 +590,23 @@ const AdminSettingsPage: React.FC = () => {
                 </AccordionSummary>
                 <AccordionDetails>
                   <Alert severity="warning" sx={{ mb: 3 }}>
-                    <Typography variant="body2">
-                      <strong>Atenção:</strong> Estas configurações são avançadas e podem afetar o funcionamento da plataforma.
-                      Altere apenas se souber o que está fazendo.
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Warning sx={{ mr: 1 }} />
+                      <Typography variant="body2">
+                        <strong>Atenção:</strong> Estas configurações são avançadas e podem afetar o funcionamento da plataforma.
+                        Altere apenas se souber o que está fazendo.
+                      </Typography>
+                    </Box>
                   </Alert>
                   <Grid container spacing={3}>
-                    {Object.entries(configs)
-                      .filter(([key]) => !configSections.some(section => section.configs.includes(key)))
-                      .map(([configKey, config]) => (
+                    {advancedConfigs.map((configKey) => {
+                      const config = configs[configKey];
+                      if (!config) {
+                        console.log(`❌ Config avançada não encontrada: ${configKey}`);
+                        return null;
+                      }
+
+                      return (
                         <Grid size={{ xs: 12, md: 6 }} key={configKey}>
                           <Box sx={{ mb: 2 }}>
                             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
@@ -595,11 +614,12 @@ const AdminSettingsPage: React.FC = () => {
                             </Typography>
                             {renderConfigField(configKey, config)}
                             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                              Tipo: {config.type} | Chave: {configKey}
+                              Tipo: {config.type} | Descrição: {config.description}
                             </Typography>
                           </Box>
                         </Grid>
-                      ))}
+                      );
+                    })}
                   </Grid>
                 </AccordionDetails>
               </Accordion>

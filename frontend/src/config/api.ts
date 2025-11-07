@@ -91,8 +91,21 @@ export interface PaginatedResponse<T> {
 
 // Funções auxiliares para chamadas da API
 export const apiCall = {
-  get: <T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> =>
-    api.get(url, config).then(response => response.data),
+  get: <T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
+    console.log('📡 API GET Request:', { url, baseURL: API_BASE_URL });
+    return api.get(url, config).then(response => {
+      console.log('📡 API GET Response:', { status: response.status, data: response.data });
+      return response.data;
+    }).catch(error => {
+      console.log('📡 API GET Error:', {
+        url,
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      throw error;
+    });
+  },
 
   post: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
     console.log('📡 API POST Request:', { url, data, baseURL: API_BASE_URL });
